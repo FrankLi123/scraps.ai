@@ -34,6 +34,10 @@
       {
         "command": "scraps.editItem",
         "title": "Edit"
+      },
+      {
+        "command": "scraps.configure",
+        "title": "Configure Scraps"
       }
     ],
     "viewsContainers": {
@@ -72,6 +76,11 @@
           "command": "scraps.addItem",
           "when": "view == scraps.list",
           "group": "navigation"
+        },
+        {
+          "command": "scraps.configure",
+          "when": "view == scraps.list",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
@@ -86,6 +95,47 @@
           "group": "1_modification"
         }
       ]
+    },
+    "configuration": {
+      "title": "Scraps",
+      "properties": {
+        "scraps.notion.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Notion API key for integration"
+        },
+        "scraps.notion.databaseId": {
+          "type": "string",
+          "default": "",
+          "description": "Notion database ID for syncing notes"
+        },
+        "scraps.notion.syncEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable automatic syncing with Notion"
+        },
+        "scraps.ai.provider": {
+          "type": "string",
+          "enum": ["openai", "anthropic", "custom"],
+          "default": "openai",
+          "description": "AI provider to use for summarization"
+        },
+        "scraps.ai.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for the selected AI provider"
+        },
+        "scraps.ai.model": {
+          "type": "string",
+          "default": "gpt-3.5-turbo",
+          "description": "Model to use for AI operations"
+        },
+        "scraps.ai.customEndpoint": {
+          "type": "string",
+          "default": "",
+          "description": "Custom endpoint URL for AI provider (only used when provider is 'custom')"
+        }
+      }
     }
   },
   "scripts": {
@@ -100,6 +150,12 @@
     "test": "vscode-test",
     "package": "npx vsce package",
     "publish": "npx vsce publish"
+  },
+  "dependencies": {
+    "@notionhq/client": "^2.2.14",
+    "openai": "^4.28.0",
+    "@anthropic-ai/sdk": "^0.18.0",
+    "axios": "^1.6.7"
   },
   "devDependencies": {
     "@types/vscode": "^1.89.0",
