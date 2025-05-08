@@ -121,7 +121,11 @@
         },
         "scraps.ai.provider": {
           "type": "string",
-          "enum": ["openai", "anthropic", "custom"],
+          "enum": [
+            "openai",
+            "anthropic",
+            "custom"
+          ],
           "default": "openai",
           "description": "AI provider to use for summarization"
         },
@@ -157,20 +161,20 @@
     "publish": "npx vsce publish"
   },
   "dependencies": {
-    "@notionhq/client": "^2.2.14",
-    "openai": "^4.28.0",
     "@anthropic-ai/sdk": "^0.18.0",
-    "axios": "^1.6.7"
+    "@notionhq/client": "^2.3.0",
+    "axios": "^1.6.7",
+    "openai": "^4.28.0"
   },
   "devDependencies": {
-    "@types/vscode": "^1.89.0",
     "@types/mocha": "^10.0.6",
     "@types/node": "22.x",
+    "@types/vscode": "^1.89.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
-    "eslint": "^8.57.0",
-    "typescript": "^5.4.5",
     "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.3.9"
+    "@vscode/test-electron": "^2.3.9",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5"
   }
 }
