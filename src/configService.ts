@@ -11,7 +11,7 @@ export class ConfigService {
     this.initializeConfig();
   }
 
-  private async initializeConfig(): Promise<void> {
+  public async initializeConfig(): Promise<void> {
     const config = vscode.workspace.getConfiguration('scraps');
     
     // Load API keys from SecretStorage

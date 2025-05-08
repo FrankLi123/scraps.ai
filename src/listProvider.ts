@@ -25,7 +25,7 @@ export class ListProvider implements vscode.TreeDataProvider<ScrapItem> {
 
   addItem(label: string) {
     const newItem = new ScrapItem(
-      label,
+      label || "Untitled",
       "{}",
       vscode.TreeItemCollapsibleState.None
     );
@@ -35,7 +35,7 @@ export class ListProvider implements vscode.TreeDataProvider<ScrapItem> {
   }
 
   renameItem(item: ScrapItem, label: string) {
-    item.label = label;
+    item.label = label || "Untitled";
     this.saveItems();
     this._onDidChangeTreeData.fire(undefined);
   }
@@ -61,40 +61,74 @@ export class ListProvider implements vscode.TreeDataProvider<ScrapItem> {
 
   private saveItems() {
     const data = this.items.map((item) => ({
+      id: item.id,
       label: item.label,
       content: item.content,
+      lastModified: item.lastModified,
     }));
     this.globalState.update("items", data);
   }
 
   private loadItems() {
     const items =
-      this.globalState.get<{ label: string; content: string }[]>("items") || [];
-    this.items = Array.from(items, ({ label, content }) => {
+      this.globalState.get<{ label: string; content: string; id: string; lastModified: number }[]>("items") || [];
+    this.items = Array.from(items, ({ id, label, content, lastModified }) => {
       return new ScrapItem(
         label,
         content,
-        vscode.TreeItemCollapsibleState.None
+        vscode.TreeItemCollapsibleState.None,
+        id,
+        lastModified
       );
     });
+  }
+
+  getAllItems(): ScrapItem[] {
+    return this.items;
+  }
+
+  updateOrAddItem(item: ScrapItem) {
+    const existing = this.items.find(i => i.id === item.id);
+    if (existing) {
+      existing.label = item.label;
+      existing.content = item.content;
+      existing.lastModified = item.lastModified;
+    } else {
+      this.items.push(item);
+    }
+    this.saveItems();
+    this._onDidChangeTreeData.fire(undefined);
   }
 }
 
 export class ScrapItem extends vscode.TreeItem {
+  public id: string;
   public content: string = "";
+  public lastModified: number;
 
   constructor(
     label: string,
     content: string,
-    collapsibleState: vscode.TreeItemCollapsibleState
+    collapsibleState: vscode.TreeItemCollapsibleState,
+    id?: string,
+    lastModified?: number
   ) {
-    super(label, collapsibleState);
+    super(label || "Untitled", collapsibleState);
+    this.id = id || this.generateId();
     this.content = content;
+    this.lastModified = lastModified || Date.now();
     this.iconPath = new vscode.ThemeIcon("note");
     this.command = {
       command: "scraps.editItem",
       title: "Edit",
       arguments: [this],
     };
+  }
+
+  private generateId(): string {
+    return (
+      Date.now().toString(36) +
+      Math.random().toString(36).substring(2, 10)
+    );
   }
 }

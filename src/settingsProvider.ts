@@ -22,6 +22,9 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
       localResourceRoots: [vscode.Uri.joinPath(vscode.Uri.file(__dirname), '..')]
     };
 
+    this.configService.initializeConfig();
+    const config = this.configService.getConfig();
+
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
     // Handle messages from the webview
@@ -29,6 +32,8 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
       switch (message.type) {
         case 'updateSettings':
           await this.configService.updateConfig(message.settings);
+          await this.configService.initializeConfig();
+          NotionService.getInstance().reloadClient();
           vscode.window.showInformationMessage('Settings saved successfully');
           webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
           break;
@@ -46,6 +51,10 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
           } catch (error: any) {
             vscode.window.showErrorMessage(`Failed to test Notion connection: ${error?.message || 'Unknown error'}`);
           }
+          break;
+
+        case 'manualSync':
+          vscode.commands.executeCommand('scraps.syncNow');
           break;
       }
     });
@@ -161,6 +170,7 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
 
           <button type="submit">Save Settings</button>
           <button type="button" id="testConnection">Test Connection</button>
+          <button type="button" id="manualSyncBtn">Sync Now</button>
         </form>
 
         <script>
@@ -210,6 +220,13 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
             e.preventDefault();
             vscode.postMessage({
               type: 'testConnection'
+            });
+          });
+
+          document.getElementById('manualSyncBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            vscode.postMessage({
+              type: 'manualSync'
             });
           });
         </script>

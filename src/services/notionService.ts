@@ -8,6 +8,7 @@ interface NotePage {
   title: string;
   content: string;
   url?: string;
+  lastModified?: number;
 }
 
 export class NotionService {
@@ -56,7 +57,7 @@ export class NotionService {
     }
   }
 
-  public async createPage(title: string, content: string): Promise<NotePage | null> {
+  public async createPage(title: string, content: string, id?: string, lastModified?: number): Promise<NotePage | null> {
     try {
       if (!this.client || !this.databaseId) {
         throw new Error('Notion client not initialized');
@@ -102,12 +103,12 @@ export class NotionService {
       };
     } catch (error) {
       console.error('Failed to create Notion page:', error);
-      vscode.window.showErrorMessage('Failed to create note in Notion');
+      vscode.window.showErrorMessage('Failed to create note in Notion: ' + (error));
       return null;
     }
   }
 
-  public async updatePage(pageId: string, title: string, content: string): Promise<NotePage | null> {
+  public async updatePage(pageId: string, title: string, content: string, lastModified?: number): Promise<NotePage | null> {
     try {
       if (!this.client) {
         throw new Error('Notion client not initialized');
@@ -171,7 +172,7 @@ export class NotionService {
       };
     } catch (error) {
       console.error('Failed to update Notion page:', error);
-      vscode.window.showErrorMessage('Failed to update note in Notion');
+      vscode.window.showErrorMessage('Failed to update note in Notion: ' + (error));
       return null;
     }
   }
@@ -190,7 +191,7 @@ export class NotionService {
       return true;
     } catch (error) {
       console.error('Failed to delete Notion page:', error);
-      vscode.window.showErrorMessage('Failed to delete note in Notion');
+      vscode.window.showErrorMessage('Failed to delete note in Notion: ' + (error));
       return false;
     }
   }
@@ -244,7 +245,7 @@ export class NotionService {
       return pages;
     } catch (error) {
       console.error('Failed to get Notion pages:', error);
-      vscode.window.showErrorMessage('Failed to fetch notes from Notion');
+      vscode.window.showErrorMessage('Failed to fetch notes from Notion: ' + (error));
       return [];
     }
   }
@@ -286,12 +287,19 @@ export class NotionService {
       };
     } catch (error) {
       console.error('Failed to get Notion page:', error);
-      vscode.window.showErrorMessage('Failed to fetch note from Notion');
+      vscode.window.showErrorMessage('Failed to fetch note from Notion: ' + (error));
       return null;
     }
   }
 
   public reloadClient(): void {
     this.initializeClient();
+  }
+
+  private generateId(): string {
+    return (
+      Date.now().toString(36) +
+      Math.random().toString(36).substring(2, 10)
+    );
   }
 } 

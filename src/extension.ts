@@ -4,6 +4,7 @@ import { ListProvider, ScrapItem } from "./listProvider";
 import { OldEditorProvider } from "./oldEditorProvider";
 import { ConfigService } from "./configService";
 import { SettingsProvider } from "./settingsProvider";
+import { SyncService } from "./services/syncService";
 
 export function activate(context: vscode.ExtensionContext) {
   // Initialize configuration service with context
@@ -63,6 +64,11 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider("scraps.settings", new SettingsProvider())
+  );
+  
+  const syncService = new SyncService(listProvider);
+  context.subscriptions.push(
+    vscode.commands.registerCommand('scraps.syncNow', () => syncService.sync())
   );
 }
 
