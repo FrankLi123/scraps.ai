@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { ConfigService } from './configService';
+import { NotionService } from './services/notionService';
 
 export class SettingsProvider implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
@@ -29,6 +30,22 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
         case 'updateSettings':
           await this.configService.updateConfig(message.settings);
           vscode.window.showInformationMessage('Settings saved successfully');
+          webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+          break;
+
+        case 'testConnection':
+          try {
+            const notionService = NotionService.getInstance();
+            const isConnected = await notionService.testConnection();
+            
+            if (isConnected) {
+              vscode.window.showInformationMessage('Successfully connected to Notion!');
+            } else {
+              vscode.window.showErrorMessage('Failed to connect to Notion. Please check your API key and Database ID.');
+            }
+          } catch (error: any) {
+            vscode.window.showErrorMessage(`Failed to test Notion connection: ${error?.message || 'Unknown error'}`);
+          }
           break;
       }
     });
@@ -71,9 +88,31 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
             border: none;
             padding: 8px 12px;
             cursor: pointer;
+            margin-right: 8px;
           }
           button:hover {
             background: var(--vscode-button-hoverBackground);
+          }
+          .api-key-input {
+            position: relative;
+          }
+          .api-key-input input {
+            padding-right: 30px;
+          }
+          .api-key-input .clear-button {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--vscode-input-foreground);
+            cursor: pointer;
+            padding: 2px 5px;
+            font-size: 12px;
+          }
+          .api-key-input .clear-button:hover {
+            color: var(--vscode-errorForeground);
           }
         </style>
       </head>
@@ -82,10 +121,13 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
           <div class="form-group">
             <h3>Notion Settings</h3>
             <label for="notionApiKey">API Key</label>
-            <input type="password" id="notionApiKey" value="${config.notion.apiKey}">
+            <div class="api-key-input">
+              <input type="password" id="notionApiKey" value="${config.notion.apiKey}" placeholder="Enter Notion API key">
+              ${config.notion.apiKey ? '<button type="button" class="clear-button" data-target="notionApiKey">Clear</button>' : ''}
+            </div>
             
             <label for="notionDatabaseId">Database ID</label>
-            <input type="text" id="notionDatabaseId" value="${config.notion.databaseId}">
+            <input type="text" id="notionDatabaseId" value="${config.notion.databaseId}" placeholder="Enter Notion Database ID">
             
             <label>
               <input type="checkbox" id="notionSyncEnabled" ${config.notion.syncEnabled ? 'checked' : ''}>
@@ -103,18 +145,22 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
             </select>
             
             <label for="aiApiKey">API Key</label>
-            <input type="password" id="aiApiKey" value="${config.ai.apiKey}">
+            <div class="api-key-input">
+              <input type="password" id="aiApiKey" value="${config.ai.apiKey}" placeholder="Enter AI provider API key">
+              ${config.ai.apiKey ? '<button type="button" class="clear-button" data-target="aiApiKey">Clear</button>' : ''}
+            </div>
             
             <label for="aiModel">Model</label>
-            <input type="text" id="aiModel" value="${config.ai.model}">
+            <input type="text" id="aiModel" value="${config.ai.model}" placeholder="Enter model name">
             
             <div id="customEndpointGroup" style="display: ${config.ai.provider === 'custom' ? 'block' : 'none'}">
               <label for="customEndpoint">Custom Endpoint</label>
-              <input type="text" id="customEndpoint" value="${config.ai.customEndpoint || ''}">
+              <input type="text" id="customEndpoint" value="${config.ai.customEndpoint || ''}" placeholder="Enter custom endpoint URL">
             </div>
           </div>
 
           <button type="submit">Save Settings</button>
+          <button type="button" id="testConnection">Test Connection</button>
         </form>
 
         <script>
@@ -122,6 +168,15 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
           const form = document.getElementById('settingsForm');
           const aiProvider = document.getElementById('aiProvider');
           const customEndpointGroup = document.getElementById('customEndpointGroup');
+
+          // Handle clear buttons for API keys
+          document.querySelectorAll('.clear-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+              e.preventDefault();
+              const targetId = button.dataset.target;
+              document.getElementById(targetId).value = '';
+            });
+          });
 
           aiProvider.addEventListener('change', (e) => {
             customEndpointGroup.style.display = e.target.value === 'custom' ? 'block' : 'none';
@@ -147,6 +202,14 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
             vscode.postMessage({
               type: 'updateSettings',
               settings
+            });
+          });
+
+          // Test connection button
+          document.getElementById('testConnection').addEventListener('click', (e) => {
+            e.preventDefault();
+            vscode.postMessage({
+              type: 'testConnection'
             });
           });
         </script>
