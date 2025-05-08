@@ -3,7 +3,7 @@ import { ExtensionConfig, DEFAULT_CONFIG } from './config';
 
 export class ConfigService {
   private static instance: ConfigService;
-  private config!: ExtensionConfig;
+  private config: ExtensionConfig = DEFAULT_CONFIG;
   private secrets: vscode.SecretStorage;
 
   private constructor(context: vscode.ExtensionContext) {

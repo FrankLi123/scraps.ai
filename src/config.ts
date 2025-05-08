@@ -25,6 +25,7 @@ export const DEFAULT_CONFIG: ExtensionConfig = {
   ai: {
     provider: 'openai',
     apiKey: '',
-    model: 'gpt-3.5-turbo'
+    model: 'gpt-3.5-turbo',
+    customEndpoint: ''
   }
 }; 
