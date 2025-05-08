@@ -42,6 +42,7 @@ export class ListProvider implements vscode.TreeDataProvider<ScrapItem> {
 
   editItem(item: ScrapItem, content: string) {
     item.content = content;
+    item.lastModified = Date.now();
     this.saveItems();
     this._onDidChangeTreeData.fire(undefined);
   }

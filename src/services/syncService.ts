@@ -45,13 +45,21 @@ export class SyncService {
       // 2. Get local notes
       const localNotes = this.listProvider.getAllItems();
 
+      // Remove local notes whose Notion page was deleted/archived
+      const remoteIds = new Set(notionPages.map((n: any) => n.id));
+      for (const localNote of localNotes) {
+        if (isNotionUUID(localNote.id) && !remoteIds.has(localNote.id)) {
+          this.listProvider.deleteItem(localNote);
+        }
+      }
+
       // 3. Merge and resolve conflicts (last modified wins)
       const merged = this.mergeNotes(localNotes, notionPages);
 
       // 4. Push local changes to Notion
       for (const note of merged.toPush) {
         const plainText = extractPlainText(note.content);
-        if (note.id && isNotionUUID(note.id)) {
+        if (note.id && isNotionUUID(note.id) && remoteIds.has(note.id)) {
           await this.notionService.updatePage(
             note.id,
             String(note.label),
@@ -59,6 +67,7 @@ export class SyncService {
             note.lastModified
           );
         } else {
+          // If the note's Notion page is missing/archived, create a new page
           const created = await this.notionService.createPage(
             String(note.label),
             plainText,

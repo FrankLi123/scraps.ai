@@ -215,6 +215,7 @@ export class NotionService {
       const pages: NotePage[] = [];
       for (const page of response.results) {
         if (!('properties' in page)) continue;
+        if ('archived' in page && page.archived) continue;
 
         // Get page content
         const blocks = await this.client.blocks.children.list({
@@ -229,16 +230,26 @@ export class NotionService {
           }
         }
 
-        // Get title from properties
-        const titleProperty = page.properties['Name'];
-        const title = titleProperty.type === 'title' 
-          ? titleProperty.title.map((t: { plain_text: string }) => t.plain_text).join('')
-          : 'Untitled';
+        // Get title from properties (robust extraction)
+        let title = 'Untitled';
+        if (
+          page.properties &&
+          page.properties['Name'] &&
+          page.properties['Name'].type === 'title' &&
+          Array.isArray(page.properties['Name'].title)
+        ) {
+          const titleArr = page.properties['Name'].title;
+          title = titleArr.map((t: { plain_text: string }) => t.plain_text).join('') || 'Untitled';
+        }
+
+        // Only use last_edited_time if it exists (i.e., page is PageObjectResponse)
+        const lastModified = 'last_edited_time' in page ? new Date((page as any).last_edited_time).getTime() : undefined;
 
         pages.push({
           id: page.id,
           title,
-          content: content.trim()
+          content: content.trim(),
+          lastModified
         });
       }
 
