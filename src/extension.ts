@@ -3,17 +3,21 @@ import { EditorProvider } from "./editorProvider";
 import { ListProvider, ScrapItem } from "./listProvider";
 import { OldEditorProvider } from "./oldEditorProvider";
 import { ConfigService } from "./configService";
+import { SettingsProvider } from "./settingsProvider";
 
 export function activate(context: vscode.ExtensionContext) {
-  // Initialize configuration service
-  const configService = ConfigService.getInstance();
+  // Initialize configuration service with context
+  const configService = ConfigService.initialize(context);
   
-  // Validate configuration
-  configService.validateConfig().then(({ valid, message }) => {
-    if (!valid) {
-      vscode.window.showWarningMessage(`Scraps configuration issue: ${message}`);
-    }
-  });
+  // Only validate if we have some configuration set
+  const config = configService.getConfig();
+  if (config.notion.syncEnabled || config.ai.provider || config.ai.model || config.ai.customEndpoint) {
+    configService.validateConfig().then(({ valid, message }) => {
+      if (!valid) {
+        vscode.window.showWarningMessage(`Scraps configuration issue: ${message}`);
+      }
+    });
+  }
 
   const listProvider = new ListProvider(context.globalState);
   const editorProvider = new EditorProvider(context.extensionUri, listProvider);
@@ -46,72 +50,38 @@ export function activate(context: vscode.ExtensionContext) {
   // Add configuration command
   vscode.commands.registerCommand("scraps.configure", async () => {
     const config = configService.getConfig();
-    
-    const notionApiKey = await vscode.window.showInputBox({
-      prompt: "Enter Notion API Key",
-      value: config.notion.apiKey,
-      password: true
-    });
-    
-    if (notionApiKey !== undefined) {
-      const notionDatabaseId = await vscode.window.showInputBox({
-        prompt: "Enter Notion Database ID",
+    let currentStep = 0;
+    const steps = [
+      {
+        title: "Notion API Key",
+        value: config.notion.apiKey,
+        isPassword: true
+      },
+      {
+        title: "Notion Database ID",
         value: config.notion.databaseId
-      });
-      
-      if (notionDatabaseId !== undefined) {
-        const enableSync = await vscode.window.showQuickPick(['Yes', 'No'], {
-          placeHolder: 'Enable automatic syncing with Notion?'
-        });
-        
-        if (enableSync !== undefined) {
-          const aiProvider = await vscode.window.showQuickPick(['openai', 'anthropic', 'custom'], {
-            placeHolder: 'Select AI Provider'
-          });
-          
-          if (aiProvider !== undefined) {
-            const aiApiKey = await vscode.window.showInputBox({
-              prompt: "Enter AI API Key",
-              value: config.ai.apiKey,
-              password: true
-            });
-            
-            if (aiApiKey !== undefined) {
-              const aiModel = await vscode.window.showInputBox({
-                prompt: "Enter AI Model",
-                value: config.ai.model
-              });
-              
-              if (aiModel !== undefined) {
-                let customEndpoint;
-                
-                if (aiProvider === 'custom') {
-                  customEndpoint = await vscode.window.showInputBox({
-                    prompt: "Enter Custom Endpoint URL",
-                    value: config.ai.customEndpoint
-                  });
-                }
-                
-                await configService.updateConfig({
-                  notion: {
-                    apiKey: notionApiKey,
-                    databaseId: notionDatabaseId,
-                    syncEnabled: enableSync === 'Yes'
-                  },
-                  ai: {
-                    provider: aiProvider as 'openai' | 'anthropic' | 'custom',
-                    apiKey: aiApiKey,
-                    model: aiModel,
-                    customEndpoint
-                  }
-                });
-                
-                vscode.window.showInformationMessage('Scraps configuration updated successfully');
-              }
-            }
-          }
-        }
+      },
+      // ... other settings
+    ];
+
+    while (currentStep < steps.length) {
+      const result = await vscode.window.showQuickPick([
+        { label: steps[currentStep].title, value: steps[currentStep].value },
+        { label: "Back", value: "back" },
+        { label: "Cancel", value: "cancel" }
+      ]);
+
+      if (!result || result.value === "cancel") {
+        break;
       }
+
+      if (result.value === "back") {
+        currentStep = Math.max(0, currentStep - 1);
+        continue;
+      }
+
+      // Process current step
+      currentStep++;
     }
   });
 
@@ -128,6 +98,9 @@ export function activate(context: vscode.ExtensionContext) {
       "scraps.oldEditor",
       oldEditorProvider
     )
+  );
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider("scraps.settings", new SettingsProvider())
   );
 }
 

@@ -67,6 +67,11 @@
           "id": "scraps.oldEditor",
           "name": "Old Editor",
           "visibility": "collapsed"
+        },
+        {
+          "type": "webview",
+          "id": "scraps.settings",
+          "name": "Settings"
         }
       ]
     },
