@@ -47,44 +47,6 @@ export function activate(context: vscode.ExtensionContext) {
     editorProvider.refresh();
   });
 
-  // Add configuration command
-  vscode.commands.registerCommand("scraps.configure", async () => {
-    const config = configService.getConfig();
-    let currentStep = 0;
-    const steps = [
-      {
-        title: "Notion API Key",
-        value: config.notion.apiKey,
-        isPassword: true
-      },
-      {
-        title: "Notion Database ID",
-        value: config.notion.databaseId
-      },
-      // ... other settings
-    ];
-
-    while (currentStep < steps.length) {
-      const result = await vscode.window.showQuickPick([
-        { label: steps[currentStep].title, value: steps[currentStep].value },
-        { label: "Back", value: "back" },
-        { label: "Cancel", value: "cancel" }
-      ]);
-
-      if (!result || result.value === "cancel") {
-        break;
-      }
-
-      if (result.value === "back") {
-        currentStep = Math.max(0, currentStep - 1);
-        continue;
-      }
-
-      // Process current step
-      currentStep++;
-    }
-  });
-
   // Views
   const listView = vscode.window.createTreeView("scraps.list", {
     treeDataProvider: listProvider,

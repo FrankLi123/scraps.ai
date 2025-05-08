@@ -34,10 +34,6 @@
       {
         "command": "scraps.editItem",
         "title": "Edit"
-      },
-      {
-        "command": "scraps.configure",
-        "title": "Configure"
       }
     ],
     "viewsContainers": {
@@ -79,11 +75,6 @@
       "view/title": [
         {
           "command": "scraps.addItem",
-          "when": "view == scraps.list",
-          "group": "navigation"
-        },
-        {
-          "command": "scraps.configure",
           "when": "view == scraps.list",
           "group": "navigation"
         }
