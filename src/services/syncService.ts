@@ -50,17 +50,18 @@ export class SyncService {
 
       // 4. Push local changes to Notion
       for (const note of merged.toPush) {
+        const plainText = extractPlainText(note.content);
         if (note.id && isNotionUUID(note.id)) {
           await this.notionService.updatePage(
             note.id,
             String(note.label),
-            note.content,
+            plainText,
             note.lastModified
           );
         } else {
           const created = await this.notionService.createPage(
             String(note.label),
-            note.content,
+            plainText,
             note.id,
             note.lastModified
           );
@@ -134,4 +135,19 @@ export class SyncService {
 function isNotionUUID(id: string): boolean {
   // Notion UUIDs are 32 hex chars, sometimes with dashes
   return /^[0-9a-fA-F]{32}$|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(id);
+}
+
+function extractPlainText(content: string): string {
+  try {
+    const doc = JSON.parse(content);
+    let result = '';
+    function walk(node: any) {
+      if (node.text) result += node.text + ' ';
+      if (node.content) node.content.forEach(walk);
+    }
+    walk(doc);
+    return result.trim();
+  } catch {
+    return content;
+  }
 }
