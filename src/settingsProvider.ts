@@ -55,6 +55,14 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
             vscode.window.showErrorMessage('AI test failed');
           }
           break;
+        case 'manualSync':
+          try {
+            await vscode.commands.executeCommand('scraps.syncNow');
+            vscode.window.showInformationMessage('Sync completed successfully');
+          } catch (error) {
+            vscode.window.showErrorMessage('Sync failed: ' + (error as Error).message);
+          }
+          break;
       }
     });
   }
