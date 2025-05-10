@@ -17,6 +17,20 @@ const initialData = (window as any).initialData as InitialData; // eslint-disabl
 const vscode = (window as any).acquireVsCodeApi(); // eslint-disable-line
 
 const TiptapEditor = () => {
+  // Safely parse content: fallback to plain text if not valid JSON
+  let editorContent: any;
+  try {
+    editorContent = JSON.parse(initialData.content || '{}');
+  } catch {
+    // If not JSON, treat as plain text paragraph
+    editorContent = {
+      type: 'doc',
+      content: [
+        { type: 'paragraph', content: [{ type: 'text', text: initialData.content || '' }] }
+      ]
+    };
+  }
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -90,7 +104,7 @@ const TiptapEditor = () => {
       }),
     ],
     autofocus: true,
-    content: JSON.parse(initialData.content || "{}"),
+    content: editorContent,
     editorProps: {
       attributes: {
         class: "prose prose-base px-2 caret-grey-500 focus:outline-none",
