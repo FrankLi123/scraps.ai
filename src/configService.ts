@@ -84,7 +84,8 @@ export class ConfigService {
     // Validate after update
     const validation = await this.validateConfig();
     if (!validation.valid) {
-      vscode.window.showWarningMessage(`Scraps configuration issue: ${validation.message}`);
+      vscode.window.showWarningMessage('Scraps configuration issue');
+      return;
     }
   }
 

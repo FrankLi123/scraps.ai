@@ -93,7 +93,6 @@ export class ListProvider implements vscode.TreeDataProvider<ScrapItem> {
     if (existing) {
       existing.label = item.label;
       existing.content = item.content;
-      existing.lastModified = item.lastModified;
     } else {
       this.items.push(item);
     }
