@@ -61,37 +61,67 @@ export class SyncService {
 
       // 4. Push local changes to Notion
       for (const note of merged.toPush) {
-        const plainText = extractPlainText(note.content);
-        if (note.id && isNotionUUID(note.id) && remoteIds.has(note.id)) {
-          await this.notionService.updatePage(
-            note.id,
-            String(note.label),
-            note.content,
-            note.lastModified
-          );
-        } else {
-          const created = await this.notionService.createPage(
-            String(note.label),
-            note.content,
-            note.id,
-            note.lastModified
-          );
-          if (created && created.id) {
-            note.id = created.id;
-            this.listProvider.updateOrAddItem(note);
+        // Defensive: ensure label and content are valid strings
+        const safeLabel = (note.label !== undefined && note.label !== null && String(note.label).trim() !== '') ? String(note.label) : 'Untitled';
+        const safeContent = (note.content !== undefined && note.content !== null) ? extractPlainText(note.content) : '';
+        let summary = safeContent;
+        let aiSummary = '';
+        try {
+          // Summarize with AI before syncing
+          aiSummary = await this.aiService.summarizeText(safeContent) || '';
+          vscode.window.showInformationMessage('[Scraps] AI summary:', aiSummary);
+          if (aiSummary && typeof aiSummary === 'string' && aiSummary.trim() !== '') {
+            summary = aiSummary.trim();
           }
+        } catch (e) {
+          const errMsg = (e instanceof Error) ? e.message : String(e);
+          vscode.window.showErrorMessage('[Scraps] AI summarization failed: ' + errMsg);
+        }
+        vscode.window.showInformationMessage('[Scraps] Syncing to Notion:', `Label: ${safeLabel}`, `Original: ${safeContent}`, `Summary: ${summary}`);
+        try {
+          console.log('Syncing to Notion:', { id: note.id, label: safeLabel, content: summary });
+          if (note.id && isNotionUUID(note.id) && remoteIds.has(note.id)) {
+            await this.notionService.updatePage(
+              note.id,
+              safeLabel,
+              summary,
+              note.lastModified
+            );
+            // Update local note with summary
+            note.content = summary;
+            this.listProvider.updateOrAddItem(note);
+          } else {
+            const created = await this.notionService.createPage(
+              safeLabel,
+              summary,
+              note.id,
+              note.lastModified
+            );
+            if (created && created.id) {
+              note.id = created.id;
+              // Update local note with summary
+              note.content = summary;
+              this.listProvider.updateOrAddItem(note);
+            }
+          }
+        } catch (err) {
+          const errMsg = (err instanceof Error) ? err.message : String(err);
+          vscode.window.showErrorMessage('[Scraps] Failed to sync note to Notion: ' + errMsg);
         }
       }
 
       // 5. Update local notes with Notion changes
       for (const note of merged.toPull) {
+        const label = (note && 'title' in note && note.title)
+          ? String(note.title)
+          : ((note && 'label' in note && note.label !== undefined) ? String(note.label) : 'Untitled');
         this.listProvider.updateOrAddItem(
           new ScrapItem(
-            String(note.label),
+            label,
             note.content,
             vscode.TreeItemCollapsibleState.None,
             note.id,
-            note.lastModified,
+            note.lastModified
           )
         );
       }
@@ -153,8 +183,12 @@ function extractPlainText(content: string): string {
     const doc = JSON.parse(content);
     let result = '';
     function walk(node: any) {
-      if (node.text) result += node.text + ' ';
-      if (node.content) node.content.forEach(walk);
+      if (node.type === 'text' && node.text) {
+        result += node.text + ' ';
+      }
+      if (node.content) {
+        node.content.forEach(walk);
+      }
     }
     walk(doc);
     return result.trim();
