@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { ConfigService } from './configService';
 import { NotionService } from './services/notionService';
+import { AIService } from './services/aiService';
 
 export class SettingsProvider implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
@@ -33,28 +34,26 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
         case 'updateSettings':
           await this.configService.updateConfig(message.settings);
           await this.configService.initializeConfig();
+          AIService.getInstance().reloadProvider();
           NotionService.getInstance().reloadClient();
           vscode.window.showInformationMessage('Settings saved successfully');
           webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
           break;
-
         case 'testConnection':
           try {
-            const notionService = NotionService.getInstance();
-            const isConnected = await notionService.testConnection();
-            
-            if (isConnected) {
-              vscode.window.showInformationMessage('Successfully connected to Notion!');
-            } else {
-              vscode.window.showErrorMessage('Failed to connect to Notion. Please check your API key and Database ID.');
-            }
-          } catch (error: any) {
-            vscode.window.showErrorMessage(`Failed to test Notion connection: ${error?.message || 'Unknown error'}`);
+            const isConnected = await NotionService.getInstance().testConnection();
+            vscode.window.showInformationMessage(isConnected ? 'Successfully connected to Notion!' : 'Failed to connect to Notion');
+          } catch {
+            vscode.window.showErrorMessage('Failed to test Notion connection');
           }
           break;
-
-        case 'manualSync':
-          vscode.commands.executeCommand('scraps.syncNow');
+        case 'testAI':
+          try {
+            const summary = await AIService.getInstance().summarizeText('This is a test of the AI summarization feature.');
+            vscode.window.showInformationMessage(summary && !summary.startsWith('Failed') ? 'AI test succeeded' : 'AI test failed');
+          } catch {
+            vscode.window.showErrorMessage('AI test failed');
+          }
           break;
       }
     });
@@ -131,7 +130,7 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
             <h3>Notion Settings</h3>
             <label for="notionApiKey">API Key</label>
             <div class="api-key-input">
-              <input type="password" id="notionApiKey" value="${config.notion.apiKey}" placeholder="Enter Notion API key">
+              <input type="password" id="notionApiKey" value="${config.notion.apiKey ? '••••••••' : ''}" placeholder="Enter Notion API key">
               ${config.notion.apiKey ? '<button type="button" class="clear-button" data-target="notionApiKey">Clear</button>' : ''}
             </div>
             
@@ -146,38 +145,37 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
 
           <div class="form-group">
             <h3>AI Settings</h3>
-            <label for="aiProvider">Provider</label>
-            <select id="aiProvider">
-              <option value="openai" ${config.ai.provider === 'openai' ? 'selected' : ''}>OpenAI</option>
-              <option value="anthropic" ${config.ai.provider === 'anthropic' ? 'selected' : ''}>Anthropic</option>
-              <option value="custom" ${config.ai.provider === 'custom' ? 'selected' : ''}>Custom</option>
-            </select>
-            
             <label for="aiApiKey">API Key</label>
             <div class="api-key-input">
-              <input type="password" id="aiApiKey" value="${config.ai.apiKey}" placeholder="Enter AI provider API key">
+              <input type="password" id="aiApiKey" value="${config.ai.apiKey ? '••••••••' : ''}" placeholder="Enter API key for the selected model">
               ${config.ai.apiKey ? '<button type="button" class="clear-button" data-target="aiApiKey">Clear</button>' : ''}
             </div>
-            
             <label for="aiModel">Model</label>
-            <input type="text" id="aiModel" value="${config.ai.model}" placeholder="Enter model name">
-            
-            <div id="customEndpointGroup" style="display: ${config.ai.provider === 'custom' ? 'block' : 'none'}">
-              <label for="customEndpoint">Custom Endpoint</label>
-              <input type="text" id="customEndpoint" value="${config.ai.customEndpoint || ''}" placeholder="Enter custom endpoint URL">
+            <select id="aiModel">
+              <option value="gpt-3.5-turbo" ${config.ai.model === 'gpt-3.5-turbo' ? 'selected' : ''}>gpt-3.5-turbo (OpenAI)</option>
+              <option value="gpt-4" ${config.ai.model === 'gpt-4' ? 'selected' : ''}>gpt-4 (OpenAI)</option>
+              <option value="gemini-pro" ${config.ai.model === 'gemini-pro' ? 'selected' : ''}>gemini-pro (Gemini)</option>
+              <option value="gemini-pro-vision" ${config.ai.model === 'gemini-pro-vision' ? 'selected' : ''}>gemini-pro-vision (Gemini)</option>
+              <option value="claude-3-opus-20240229" ${config.ai.model === 'claude-3-opus-20240229' ? 'selected' : ''}>claude-3-opus-20240229 (Anthropic)</option>
+              <option value="claude-3-sonnet-20240229" ${config.ai.model === 'claude-3-sonnet-20240229' ? 'selected' : ''}>claude-3-sonnet-20240229 (Anthropic)</option>
+              <option value="claude-3-haiku-20240307" ${config.ai.model === 'claude-3-haiku-20240307' ? 'selected' : ''}>claude-3-haiku-20240307 (Anthropic)</option>
+              <option value="gpt-4o" ${config.ai.model === 'gpt-4o' ? 'selected' : ''}>gpt-4o (OpenAI)</option>
+              <option value="o3-mini" ${config.ai.model === 'o3-mini' ? 'selected' : ''}>o3-mini (OpenRouter)</option>
+            </select>
+            <div class="text-xs text-gray-500 mt-1">
+              Select the AI model for summarization. (gpt-* = OpenAI, gemini-* = Gemini, claude-* = Anthropic)
             </div>
           </div>
 
           <button type="submit">Save Settings</button>
           <button type="button" id="testConnection">Test Connection</button>
+          <button type="button" id="testAI">Test AI</button>
           <button type="button" id="manualSyncBtn">Sync Now</button>
         </form>
 
         <script>
           const vscode = acquireVsCodeApi();
           const form = document.getElementById('settingsForm');
-          const aiProvider = document.getElementById('aiProvider');
-          const customEndpointGroup = document.getElementById('customEndpointGroup');
 
           // Handle clear buttons for API keys
           document.querySelectorAll('.clear-button').forEach(button => {
@@ -188,13 +186,8 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
             });
           });
 
-          aiProvider.addEventListener('change', (e) => {
-            customEndpointGroup.style.display = e.target.value === 'custom' ? 'block' : 'none';
-          });
-
           form.addEventListener('submit', (e) => {
             e.preventDefault();
-            
             const settings = {
               notion: {
                 apiKey: document.getElementById('notionApiKey').value,
@@ -202,24 +195,27 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
                 syncEnabled: document.getElementById('notionSyncEnabled').checked
               },
               ai: {
-                provider: document.getElementById('aiProvider').value,
                 apiKey: document.getElementById('aiApiKey').value,
-                model: document.getElementById('aiModel').value,
-                customEndpoint: document.getElementById('customEndpoint').value
+                model: document.getElementById('aiModel').value
               }
             };
-
             vscode.postMessage({
               type: 'updateSettings',
               settings
             });
           });
 
-          // Test connection button
           document.getElementById('testConnection').addEventListener('click', (e) => {
             e.preventDefault();
             vscode.postMessage({
               type: 'testConnection'
+            });
+          });
+
+          document.getElementById('testAI').addEventListener('click', (e) => {
+            e.preventDefault();
+            vscode.postMessage({
+              type: 'testAI'
             });
           });
 

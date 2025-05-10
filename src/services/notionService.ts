@@ -52,7 +52,6 @@ export class NotionService {
       
       return true;
     } catch (error) {
-      console.error('Notion connection test failed:', error);
       return false;
     }
   }
@@ -62,48 +61,24 @@ export class NotionService {
       if (!this.client || !this.databaseId) {
         throw new Error('Notion client not initialized');
       }
-
       const response = await this.client.pages.create({
-        parent: {
-          database_id: this.databaseId
-        },
+        parent: { database_id: this.databaseId },
         properties: {
           Name: {
-            title: [
-              {
-                text: {
-                  content: title
-                }
-              }
-            ]
+            title: [{ text: { content: title } }]
           }
         },
-        children: [
-          {
-            object: 'block',
-            type: 'paragraph',
-            paragraph: {
-              rich_text: [
-                {
-                  type: 'text',
-                  text: {
-                    content
-                  }
-                }
-              ]
-            }
+        children: [{
+          object: 'block',
+          type: 'paragraph',
+          paragraph: {
+            rich_text: [{ type: 'text', text: { content } }]
           }
-        ]
+        }]
       });
-
-      return {
-        id: response.id,
-        title,
-        content
-      };
+      return { id: response.id, title, content };
     } catch (error) {
-      console.error('Failed to create Notion page:', error);
-      vscode.window.showErrorMessage('Failed to create note in Notion: ' + (error));
+      vscode.window.showErrorMessage('Failed to create note in Notion');
       return null;
     }
   }
@@ -171,8 +146,7 @@ export class NotionService {
         content
       };
     } catch (error) {
-      console.error('Failed to update Notion page:', error);
-      vscode.window.showErrorMessage('Failed to update note in Notion: ' + (error));
+      vscode.window.showErrorMessage('Failed to update note in Notion');
       return null;
     }
   }
@@ -190,8 +164,7 @@ export class NotionService {
 
       return true;
     } catch (error) {
-      console.error('Failed to delete Notion page:', error);
-      vscode.window.showErrorMessage('Failed to delete note in Notion: ' + (error));
+      vscode.window.showErrorMessage('Failed to delete note in Notion');
       return false;
     }
   }
@@ -255,8 +228,7 @@ export class NotionService {
 
       return pages;
     } catch (error) {
-      console.error('Failed to get Notion pages:', error);
-      vscode.window.showErrorMessage('Failed to fetch notes from Notion: ' + (error));
+      vscode.window.showErrorMessage('Failed to fetch notes from Notion');
       return [];
     }
   }
@@ -297,8 +269,7 @@ export class NotionService {
         content: content.trim()
       };
     } catch (error) {
-      console.error('Failed to get Notion page:', error);
-      vscode.window.showErrorMessage('Failed to fetch note from Notion: ' + (error));
+      vscode.window.showErrorMessage('Failed to fetch note from Notion');
       return null;
     }
   }
@@ -308,9 +279,6 @@ export class NotionService {
   }
 
   private generateId(): string {
-    return (
-      Date.now().toString(36) +
-      Math.random().toString(36).substring(2, 10)
-    );
+    return Date.now().toString(36) + Math.random().toString(36).substring(2, 10);
   }
 } 

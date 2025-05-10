@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { NotionService } from './notionService';
 import { ListProvider, ScrapItem } from '../listProvider';
+import { AIService } from './aiService';
 
 export enum SyncStatus {
   Idle = 'Idle',
@@ -13,6 +14,7 @@ export enum SyncStatus {
 export class SyncService {
   private notionService: NotionService;
   private listProvider: ListProvider;
+  private aiService: AIService;
   private statusBar: vscode.StatusBarItem;
   private syncStatus: SyncStatus = SyncStatus.Idle;
   private syncInterval: NodeJS.Timeout | null = null;
@@ -20,6 +22,7 @@ export class SyncService {
   constructor(listProvider: ListProvider) {
     this.notionService = NotionService.getInstance();
     this.listProvider = listProvider;
+    this.aiService = AIService.getInstance();
     this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
     this.statusBar.text = 'Scraps: Idle';
     this.statusBar.show();
@@ -63,14 +66,13 @@ export class SyncService {
           await this.notionService.updatePage(
             note.id,
             String(note.label),
-            plainText,
+            note.content,
             note.lastModified
           );
         } else {
-          // If the note's Notion page is missing/archived, create a new page
           const created = await this.notionService.createPage(
             String(note.label),
-            plainText,
+            note.content,
             note.id,
             note.lastModified
           );
@@ -89,7 +91,7 @@ export class SyncService {
             note.content,
             vscode.TreeItemCollapsibleState.None,
             note.id,
-            note.lastModified
+            note.lastModified,
           )
         );
       }
