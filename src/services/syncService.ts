@@ -18,6 +18,7 @@ export class SyncService {
   private statusBar: vscode.StatusBarItem;
   private syncStatus: SyncStatus = SyncStatus.Idle;
   private syncInterval: NodeJS.Timeout | null = null;
+  private tombstones: Set<string>;
 
   constructor(listProvider: ListProvider) {
     this.notionService = NotionService.getInstance();
@@ -26,6 +27,7 @@ export class SyncService {
     this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
     this.statusBar.text = 'Scraps: Idle';
     this.statusBar.show();
+    this.tombstones = new Set<string>(listProvider['globalState'].get('notionDeletedTombstones', []));
   }
 
   public startAutoSync(intervalMs: number = 60000) {
@@ -53,12 +55,14 @@ export class SyncService {
       const remoteIds = new Set(notionPages.map((n: any) => n.id));
       for (const localNote of localNotes) {
         if (isNotionUUID(localNote.id) && !remoteIds.has(localNote.id)) {
+          this.tombstones.add(localNote.id);
           this.listProvider.deleteItem(localNote);
         }
       }
+      this.listProvider['globalState'].update('notionDeletedTombstones', Array.from(this.tombstones));
 
       // 3. Merge and resolve conflicts (last modified wins)
-      const merged = this.mergeNotes(localNotes, notionPages);
+      const merged = this.mergeNotes(localNotes, notionPages, this.tombstones);
 
       // 4. Push local changes to Notion (only if lastModified is newer)
       for (const note of merged.toPush) {
@@ -146,13 +150,17 @@ export class SyncService {
     }
   }
 
-  private mergeNotes(local: ScrapItem[], remote: any[]): { toPush: ScrapItem[]; toPull: ScrapItem[] } {
+  private mergeNotes(local: ScrapItem[], remote: any[], tombstones?: Set<string>): { toPush: ScrapItem[]; toPull: ScrapItem[] } {
     // Simple last-modified-wins merge
     const toPush: ScrapItem[] = [];
     const toPull: ScrapItem[] = [];
     const remoteMap = new Map(remote.map((n: any) => [n.id, n]));
 
     for (const l of local) {
+      if (tombstones && tombstones.has(l.id)) {
+        vscode.window.showInformationMessage(`[Scraps] Note '${l.label}' (id: ${l.id}) is in tombstones. Will not push to Notion.`);
+        continue;
+      }
       const r = remoteMap.get(l.id);
       if (!r) {
         vscode.window.showInformationMessage(`[Scraps] Note '${l.label}' (id: ${l.id}) not found in remote. Will push.`);
