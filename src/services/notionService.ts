@@ -2,6 +2,7 @@ import { Client, APIResponseError } from '@notionhq/client';
 import { PageObjectResponse, PartialPageObjectResponse, DatabaseObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 import { ConfigService } from '../configService';
 import * as vscode from 'vscode';
+import { notionBlocksToPlainText, plainTextToNotionBlocks } from './notionUtils';
 
 interface NotePage {
   id: string;
@@ -68,13 +69,7 @@ export class NotionService {
             title: [{ text: { content: title } }]
           }
         },
-        children: [{
-          object: 'block',
-          type: 'paragraph',
-          paragraph: {
-            rich_text: [{ type: 'text', text: { content } }]
-          }
-        }]
+        children: plainTextToNotionBlocks(content)
       });
       return { id: response.id, title, content };
     } catch (error) {
@@ -120,22 +115,7 @@ export class NotionService {
       // Add new content
       await this.client.blocks.children.append({
         block_id: pageId,
-        children: [
-          {
-            object: 'block',
-            type: 'paragraph',
-            paragraph: {
-              rich_text: [
-                {
-                  type: 'text',
-                  text: {
-                    content
-                  }
-                }
-              ]
-            }
-          }
-        ]
+        children: plainTextToNotionBlocks(content)
       });
 
       const page = await this.client.pages.retrieve({ page_id: pageId });
@@ -143,7 +123,7 @@ export class NotionService {
       return {
         id: pageId,
         title,
-        content
+        content: notionBlocksToPlainText(existingBlocks.results)
       };
     } catch (error) {
       vscode.window.showErrorMessage('Failed to update note in Notion');
@@ -196,12 +176,7 @@ export class NotionService {
         });
 
         // Extract content from blocks
-        let content = '';
-        for (const block of blocks.results) {
-          if ('paragraph' in block && block.paragraph.rich_text.length > 0) {
-            content += block.paragraph.rich_text.map((text: { plain_text: string }) => text.plain_text).join('') + '\n';
-          }
-        }
+        let content = notionBlocksToPlainText(blocks.results);
 
         // Get title from properties (robust extraction)
         let title = 'Untitled';
@@ -251,12 +226,7 @@ export class NotionService {
         block_id: pageId
       });
 
-      let content = '';
-      for (const block of blocks.results) {
-        if ('paragraph' in block && block.paragraph.rich_text.length > 0) {
-          content += block.paragraph.rich_text.map((text: { plain_text: string }) => text.plain_text).join('') + '\n';
-        }
-      }
+      let content = notionBlocksToPlainText(blocks.results);
 
       const titleProperty = page.properties['Name'];
       const title = titleProperty.type === 'title'
@@ -281,4 +251,4 @@ export class NotionService {
   private generateId(): string {
     return Date.now().toString(36) + Math.random().toString(36).substring(2, 10);
   }
-} 
+}
