@@ -21,11 +21,11 @@ export class OpenAIProvider implements AIProvider {
       const messages: any[] = [
         {
           role: 'system',
-          content: 'You are a helpful assistant that creates concise summaries. Keep summaries under 3 sentences.'
+          content: 'You are a helpful assistant that restructures and enhances notes for clarity and review. Present the original information in a more readable, structured way using headings, bullet points, code blocks, and add short summaries or highlights above sections if appropriate. Do not remove any original information.'
         },
         {
           role: 'user',
-          content: `Please summarize the following text:\n${text}`
+          content: `Please structure and enhance the following note for clarity. Use headings, bullet points, code blocks, and add short summaries or highlights above sections if appropriate. Do not remove any original information.\n${text}`
         }
       ];
       const payload = {
