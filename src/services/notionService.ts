@@ -73,7 +73,7 @@ export class NotionService {
       });
       return { id: response.id, title, content };
     } catch (error) {
-      vscode.window.showErrorMessage('Failed to create note in Notion');
+      vscode.window.showErrorMessage('Failed to create note in Notion' + (error as Error).message);
       return null;
     }
   }
@@ -126,7 +126,7 @@ export class NotionService {
         content: notionBlocksToPlainText(existingBlocks.results)
       };
     } catch (error) {
-      vscode.window.showErrorMessage('Failed to update note in Notion');
+      vscode.window.showErrorMessage('Failed to update note in Notion' + (error as Error).message);
       return null;
     }
   }
@@ -144,7 +144,7 @@ export class NotionService {
 
       return true;
     } catch (error) {
-      vscode.window.showErrorMessage('Failed to delete note in Notion');
+      vscode.window.showErrorMessage('Failed to delete note in Notion' + (error as Error).message);
       return false;
     }
   }
@@ -203,7 +203,7 @@ export class NotionService {
 
       return pages;
     } catch (error) {
-      vscode.window.showErrorMessage('Failed to fetch notes from Notion');
+      vscode.window.showErrorMessage('Failed to fetch notes from Notion' + (error as Error).message);
       return [];
     }
   }
@@ -239,7 +239,7 @@ export class NotionService {
         content: content.trim()
       };
     } catch (error) {
-      vscode.window.showErrorMessage('Failed to fetch note from Notion');
+      vscode.window.showErrorMessage('Failed to fetch note from Notion' + (error as Error).message);
       return null;
     }
   }
