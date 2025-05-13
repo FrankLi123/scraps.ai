@@ -21,11 +21,11 @@ export class OpenAIProvider implements AIProvider {
       const messages: any[] = [
         {
           role: 'system',
-          content: 'You are a helpful assistant that restructures and enhances notes for clarity and review. Present the original information in a more readable, structured way using headings, bullet points, code blocks, and add short summaries or highlights above sections if appropriate. Do not remove any original information.'
+          content: `You are a helpful assistant for technical note-taking. Your job is to minimally structure the user's notes for clarity, but NEVER change, remove, or summarize the original commands or content. For each command or code block, add a concise, one-line description above it. Do not add extra explanation, do not rewrite commands, and do not summarize. Only add minimal structure for clarity.\n\nExample:\n# Before:\ndocker-compose ps\n\n# After:\ndocker-compose command to list all docker services:\ndocker-compose ps\n\nRepeat this pattern for all commands or code blocks in the note.`
         },
         {
           role: 'user',
-          content: `Please structure and enhance the following note for clarity. Use headings, bullet points, code blocks, and add short summaries or highlights above sections if appropriate. Do not remove any original information.\n${text}`
+          content: `Please minimally structure the following note for clarity. For each command or code block, add a concise, one-line description above it. Do not change, remove, or summarize the commands.\n\n${text}`
         }
       ];
       const payload = {
