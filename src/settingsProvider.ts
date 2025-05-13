@@ -171,15 +171,10 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
             </div>
             <label for="aiModel">Model</label>
             <select id="aiModel">
-              <option value="gpt-3.5-turbo" ${config.ai.model === 'gpt-3.5-turbo' ? 'selected' : ''}>gpt-3.5-turbo (OpenAI)</option>
-              <option value="gpt-4" ${config.ai.model === 'gpt-4' ? 'selected' : ''}>gpt-4 (OpenAI)</option>
-              <option value="gemini-pro" ${config.ai.model === 'gemini-pro' ? 'selected' : ''}>gemini-pro (Gemini)</option>
-              <option value="gemini-pro-vision" ${config.ai.model === 'gemini-pro-vision' ? 'selected' : ''}>gemini-pro-vision (Gemini)</option>
-              <option value="claude-3-opus-20240229" ${config.ai.model === 'claude-3-opus-20240229' ? 'selected' : ''}>claude-3-opus-20240229 (Anthropic)</option>
-              <option value="claude-3-sonnet-20240229" ${config.ai.model === 'claude-3-sonnet-20240229' ? 'selected' : ''}>claude-3-sonnet-20240229 (Anthropic)</option>
-              <option value="claude-3-haiku-20240307" ${config.ai.model === 'claude-3-haiku-20240307' ? 'selected' : ''}>claude-3-haiku-20240307 (Anthropic)</option>
-              <option value="gpt-4o" ${config.ai.model === 'gpt-4o' ? 'selected' : ''}>gpt-4o (OpenAI)</option>
-              <option value="o3-mini" ${config.ai.model === 'o3-mini' ? 'selected' : ''}>o3-mini (OpenRouter)</option>
+              <option value="gpt4o" ${config.ai.model === 'gpt4o' ? 'selected' : ''}>gpt4o (OpenAI)</option>
+              <option value="gpt4o-mini" ${config.ai.model === 'gpt4o-mini' ? 'selected' : ''}>gpt4o-mini (OpenAI)</option>
+              <option value="gemini-2.0-flash" ${config.ai.model === 'gemini-2.0-flash' ? 'selected' : ''}>Gemini 2.0 Flash (Google)</option>
+              <option value="fireworks-ai" ${config.ai.model === 'fireworks-ai' ? 'selected' : ''}>Fireworks AI</option>
             </select>
           </div>
 
