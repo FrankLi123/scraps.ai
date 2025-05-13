@@ -1,68 +1,72 @@
+import * as vscode from 'vscode';
+import { marked } from 'marked';
+
+// Notion allowed code block languages
+const NOTION_CODE_LANGUAGES = new Set([
+  'abap', 'agda', 'arduino', 'ascii art', 'assembly', 'bash', 'basic', 'bnf', 'c', 'c#', 'c++', 'clojure', 'coffeescript', 'coq', 'css', 'dart', 'dhall', 'diff', 'docker', 'elixir', 'elm', 'erlang', 'f#', 'flow', 'fortran', 'gherkin', 'glsl', 'go', 'graphql', 'groovy', 'haskell', 'hcl', 'html', 'idris', 'java', 'javascript', 'json', 'julia', 'kotlin', 'latex', 'less', 'lisp', 'livescript', 'llvm ir', 'lua', 'makefile', 'markdown', 'markup', 'matlab', 'mathematica', 'mermaid', 'nix', 'notion formula', 'objective-c', 'ocaml', 'pascal', 'perl', 'php', 'plain text', 'powershell', 'prolog', 'protobuf', 'purescript', 'python', 'r', 'racket', 'reason', 'ruby', 'rust', 'sass', 'scala', 'scheme', 'scss', 'shell', 'smalltalk', 'solidity', 'sql', 'stylus', 'swift', 'toml', 'typescript', 'verilog', 'vhdl', 'visual basic', 'webassembly', 'xml', 'yaml', 'zig'
+]);
+
 // Utility: Convert plain text (with simple conventions) to Notion blocks
 export function plainTextToNotionBlocks(text: string): any[] {
-  const lines = text.split('\n');
+  const tokens = marked.lexer(text);
   const blocks: any[] = [];
-  let currentBullets: string[] = [];
-  for (const line of lines) {
-    if (/^\s*- /.test(line)) {
-      currentBullets.push(line.replace(/^\s*- /, ''));
-    } else {
-      if (currentBullets.length) {
+
+  for (const token of tokens) {
+    if (token.type === 'heading') {
+      blocks.push({
+        object: 'block',
+        type: `heading_${Math.min(token.depth, 3)}`,
+        [`heading_${Math.min(token.depth, 3)}`]: {
+          rich_text: [{ type: 'text', text: { content: token.text } }]
+        }
+      });
+    } else if (token.type === 'paragraph') {
+      blocks.push({
+        object: 'block',
+        type: 'paragraph',
+        paragraph: {
+          rich_text: [{ type: 'text', text: { content: token.text } }]
+        }
+      });
+    } else if (token.type === 'list') {
+      for (const item of token.items) {
         blocks.push({
-          object: 'block',
-          type: 'bulleted_list',
-          bulleted_list: {
-            children: currentBullets.map(bullet => ({
-              object: 'block',
-              type: 'bulleted_list_item',
-              bulleted_list_item: {
-                rich_text: [{ type: 'text', text: { content: bullet } }]
-              }
-            }))
-          }
-        });
-        currentBullets = [];
-      }
-      const match = line.match(/^#+/);
-      const level = match ? match[0].length : 1;
-      if (level > 3) {
-        blocks.push({
-          object: 'block',
-          type: 'heading_' + Math.min(level, 3),
-          ['heading_' + Math.min(level, 3)]: {
-            rich_text: [{ type: 'text', text: { content: line.replace(/^#+ /, '') } }]
-          }
-        });
-      } else if (/^```/.test(line)) {
-        // Code block start/end (very basic)
-        // Notion API expects code block as a single block, so this is a placeholder
-      } else if (line.trim()) {
-        blocks.push({
-          object: 'block',
-          type: 'paragraph',
-          paragraph: {
-            rich_text: [{ type: 'text', text: { content: line } }]
-          }
-        });
-      }
-    }
-  }
-  if (currentBullets.length) {
-    blocks.push({
-      object: 'block',
-      type: 'bulleted_list',
-      bulleted_list: {
-        children: currentBullets.map(bullet => ({
           object: 'block',
           type: 'bulleted_list_item',
           bulleted_list_item: {
-            rich_text: [{ type: 'text', text: { content: bullet } }]
+            rich_text: [{ type: 'text', text: { content: item.text } }]
           }
-        }))
+        });
       }
-    });
+    } else if (token.type === 'code') {
+      // Validate code block language
+      let lang = (token.lang || '').toLowerCase();
+      if (!NOTION_CODE_LANGUAGES.has(lang)) {
+        lang = 'plain text';
+      }
+      blocks.push({
+        object: 'block',
+        type: 'code',
+        code: {
+          rich_text: [{ type: 'text', text: { content: token.text } }],
+          language: lang
+        }
+      });
+    } else if (token.type === 'hr') {
+      blocks.push({
+        object: 'block',
+        type: 'divider',
+        divider: {}
+      });
+    }
+    // Add more token types as needed
   }
-  return blocks;
+  // Filter out any falsy/undefined blocks
+  const filteredBlocks = blocks.filter(Boolean);
+  if (typeof console !== 'undefined') {
+    console.log('plainTextToNotionBlocks - filtered blocks:', filteredBlocks);
+  }
+  return filteredBlocks;
 }
 
 // Utility: Convert Notion blocks to plain text (for extension display)

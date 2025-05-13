@@ -66,53 +66,75 @@ export class SyncService {
 
       // 4. Push local changes to Notion (only if lastModified is newer)
       for (const note of merged.toPush) {
-        // Defensive: ensure label and content are valid strings
         const safeLabel = (note.label !== undefined && note.label !== null && String(note.label).trim() !== '') ? String(note.label) : 'Untitled';
         const safeContent = (note.content !== undefined && note.content !== null) ? extractPlainText(note.content) : '';
-        let summary = safeContent;
-        let aiSummary = '';
+        let aiOutput = '';
         try {
-          // Summarize with AI before syncing
-          aiSummary = await this.aiService.summarizeText(safeContent) || '';
-          vscode.window.showInformationMessage('[Scraps] AI summary:', aiSummary);
-          if (aiSummary && typeof aiSummary === 'string' && aiSummary.trim() !== '') {
-            summary = aiSummary.trim();
-          }
+          aiOutput = await this.aiService.summarizeText(safeContent) || '';
+          vscode.window.showInformationMessage('[Scraps] AI summary:', aiOutput);
         } catch (e) {
           const errMsg = (e instanceof Error) ? e.message : String(e);
           vscode.window.showErrorMessage('[Scraps] AI summarization failed: ' + errMsg);
         }
-        vscode.window.showInformationMessage('[Scraps] Syncing to Notion:', `Label: ${safeLabel}`, `Original: ${safeContent}`, `Summary: ${summary}`);
+        // Validate AI output
+        if (!aiOutput || aiOutput.trim().length === 0) {
+          vscode.window.showErrorMessage('[Scraps] AI output is empty. Skipping sync for this note.');
+          continue;
+        }
+        // Convert to Notion blocks
+        let blocks;
         try {
+          blocks = require('./notionUtils').plainTextToNotionBlocks(aiOutput);
+          vscode.window.showInformationMessage('[Scraps] Notion blocks:', JSON.stringify(blocks));
+        } catch (e) {
+          vscode.window.showErrorMessage('[Scraps] Failed to generate Notion blocks for logging. Skipping sync for this note.' + (e as Error).message);
+          continue;
+        }
+        if (!blocks || blocks.length === 0) {
+          // Fallback: treat as a single paragraph block
+          blocks = [{
+            object: 'block',
+            type: 'paragraph',
+            paragraph: {
+              rich_text: [{ type: 'text', text: { content: aiOutput } }]
+            }
+          }];
+        }
+        // Defensive: only update local note after successful Notion sync
+        try {
+          let notionSuccess = false;
           if (note.id && isNotionUUID(note.id) && remoteIds.has(note.id)) {
-            await this.notionService.updatePage(
+            const updated = await this.notionService.updatePage(
               note.id,
               safeLabel,
-              summary,
+              aiOutput,
               note.lastModified
             );
-            // Update local note with summary
-            note.content = summary;
-            this.listProvider.updateOrAddItem(note);
+            if (updated) {
+              note.content = aiOutput;
+              this.listProvider.updateOrAddItem(note);
+              notionSuccess = true;
+            }
           } else {
             const created = await this.notionService.createPage(
               safeLabel,
-              summary,
+              aiOutput,
               note.id,
               note.lastModified
             );
             if (created && created.id) {
               note.id = created.id;
-              // Update local note with summary
-              note.content = summary;
+              note.content = aiOutput;
               this.listProvider.updateOrAddItem(note);
+              notionSuccess = true;
             }
+          }
+          if (!notionSuccess) {
+            vscode.window.showErrorMessage('[Scraps] Notion sync failed, local note not updated.');
           }
         } catch (err) {
           const errMsg = (err instanceof Error) ? err.message : String(err);
           vscode.window.showErrorMessage('[Scraps] Failed to sync note to Notion: ' + errMsg);
-          // On error, do not remove or hide the note from the UI
-          this.listProvider.updateOrAddItem(note);
         }
       }
 
