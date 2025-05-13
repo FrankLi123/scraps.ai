@@ -98,6 +98,15 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
             color: var(--vscode-input-foreground);
             border: 1px solid var(--vscode-input-border);
           }
+          .api-key-input {
+            position: relative;
+            width: 100%;
+          }
+          .api-key-input input {
+            padding-right: 30px;
+            width: 100%;
+            box-sizing: border-box;
+          }
           button {
             background: var(--vscode-button-background);
             color: var(--vscode-button-foreground);
@@ -108,12 +117,6 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
           }
           button:hover {
             background: var(--vscode-button-hoverBackground);
-          }
-          .api-key-input {
-            position: relative;
-          }
-          .api-key-input input {
-            padding-right: 30px;
           }
           .api-key-input .clear-button {
             position: absolute;
@@ -143,8 +146,9 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
             </div>
             
             <label for="notionDatabaseId">Database ID</label>
-            <input type="text" id="notionDatabaseId" value="${config.notion.databaseId}" placeholder="Enter Notion Database ID">
-            
+              <div class="api-key-input">
+                <input type="text" id="notionDatabaseId" value="${config.notion.databaseId}" placeholder="Enter Notion Database ID">
+              </div>
             <label>
               <input type="checkbox" id="notionSyncEnabled" ${config.notion.syncEnabled ? 'checked' : ''}>
               Enable Sync
@@ -170,9 +174,6 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
               <option value="gpt-4o" ${config.ai.model === 'gpt-4o' ? 'selected' : ''}>gpt-4o (OpenAI)</option>
               <option value="o3-mini" ${config.ai.model === 'o3-mini' ? 'selected' : ''}>o3-mini (OpenRouter)</option>
             </select>
-            <div class="text-xs text-gray-500 mt-1">
-              Select the AI model for summarization. (gpt-* = OpenAI, gemini-* = Gemini, claude-* = Anthropic)
-            </div>
           </div>
 
           <button type="submit">Save Settings</button>
