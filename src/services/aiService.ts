@@ -2,6 +2,7 @@ import { ConfigService } from '../configService';
 import OpenAI from 'openai';
 import axios from 'axios';
 import * as vscode from 'vscode';
+import { GoogleGenAI } from "@google/genai";
 
 export interface AIProvider {
   summarizeText(text: string): Promise<string>;
@@ -46,40 +47,26 @@ export class OpenAIProvider implements AIProvider {
 }
 
 export class GeminiProvider implements AIProvider {
-  private apiKey: string;
+  private client: GoogleGenAI;
   private model: string;
 
   constructor(apiKey: string, model: string = 'gemini-pro') {
-    this.apiKey = apiKey;
+    this.client = new GoogleGenAI({ apiKey });
     this.model = model;
   }
 
   async summarizeText(text: string): Promise<string> {
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent`;
-      const prompt = `Please summarize the following text in 2-3 concise sentences:\n${text}`;
-      const body = {
-        contents: [{ parts: [{ text: prompt }] }]
-      };
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
-        },
-        body: JSON.stringify(body)
-      });
-      if (!response.ok) {
-        throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
-      }
-      const data = await response.json();
-      const d = data as any;
-      return (
-        d.candidates?.[0]?.content?.parts?.[0]?.text || 'No summary generated'
-      );
-    } catch (error) {
-      return 'Failed to generate summary';
-    }
+    const systemPrompt = `You are a helpful assistant for technical note-taking. For each command, add a concise, one-line description above it and ALWAYS put the command itself in a Markdown code block (triple backticks). Do not change, remove, or summarize the commands.\n\nFor any non-command notes, group them at the end under a heading like 'Notes' or 'To-Do', and present them as a bulleted list or paragraph for clarity.\n\nExample:\n# Before:\ndocker-compose up\npip3 install\nI want to make the backend first, then I will add the authentication, and then the frontend, and then fix the UI.\n\n# After:\ndocker-compose command to start up services defined in a docker-compose file:\n\n\`\`\`\ndocker-compose up\n\`\`\`\n\nCommand to install a package using pip for Python 3:\n\n\`\`\`\npip3 install\n\`\`\`\n\n## Notes\n- I want to make the backend first, then I will add the authentication, and then the frontend, and then fix the UI.\n\nRepeat this pattern for all commands and notes.`;
+
+    const userPrompt = `Please minimally structure the following note for clarity. For each command, add a concise, one-line description above it and ALWAYS put the command itself in a Markdown code block (triple backticks). For any non-command notes, group them at the end under a heading like 'Notes' or 'To-Do', and present them as a bulleted list or paragraph for clarity. Do not change, remove, or summarize the commands.\n\n${text}`;
+
+    const response = await this.client.models.generateContent({
+      model: this.model,
+      contents: [
+        { role: "user", parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }
+      ]
+    });
+    return response.text || 'No summary generated';
   }
 }
 
@@ -181,7 +168,7 @@ export class AIService {
   private MODEL_MAP: Record<string, string> = {
     'gpt4o': 'gpt-4o',
     'gpt4o-mini': 'gpt-4o-mini',
-    'gemini-2.0-flash': 'models/gemini-2.0-flash',
+    'gemini-2.0-flash': 'gemini-2.0-flash',
     'fireworks-ai': 'accounts/fireworks/models/llama-v3-70b-instruct'
   };
 
