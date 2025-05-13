@@ -133,6 +133,12 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
           .api-key-input .clear-button:hover {
             color: var(--vscode-errorForeground);
           }
+          .settings-btn {
+            min-width: 140px;
+            margin-right: 12px;
+            margin-bottom: 10px;
+            display: inline-block;
+          }
         </style>
       </head>
       <body>
@@ -146,13 +152,14 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
             </div>
             
             <label for="notionDatabaseId">Database ID</label>
-              <div class="api-key-input">
-                <input type="text" id="notionDatabaseId" value="${config.notion.databaseId}" placeholder="Enter Notion Database ID">
-              </div>
-            <label>
-              <input type="checkbox" id="notionSyncEnabled" ${config.notion.syncEnabled ? 'checked' : ''}>
-              Enable Sync
-            </label>
+            <div class="api-key-input">
+              <input type="text" id="notionDatabaseId" value="${config.notion.databaseId}" placeholder="Enter Notion Database ID">
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+              <input type="checkbox" id="notionSyncEnabled" ${config.notion.syncEnabled ? 'checked' : ''} style="width: 18px; height: 18px;" />
+              <label for="notionSyncEnabled" style="margin: 0;">Enable Sync</label>
+            </div>
           </div>
 
           <div class="form-group">
@@ -176,10 +183,9 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
             </select>
           </div>
 
-          <button type="submit">Save Settings</button>
-          <button type="button" id="testConnection">Test Connection</button>
-          <button type="button" id="testAI">Test AI</button>
-          <button type="button" id="manualSyncBtn">Sync Now</button>
+          <button type="submit" class="settings-btn">Save Settings</button>
+          <button type="button" id="testConnection" class="settings-btn">Test Connection</button>
+          <button type="button" id="testAI" class="settings-btn">Test AI</button>
         </form>
 
         <script>
@@ -225,13 +231,6 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
             e.preventDefault();
             vscode.postMessage({
               type: 'testAI'
-            });
-          });
-
-          document.getElementById('manualSyncBtn').addEventListener('click', (e) => {
-            e.preventDefault();
-            vscode.postMessage({
-              type: 'manualSync'
             });
           });
         </script>

@@ -21,11 +21,14 @@ export class OpenAIProvider implements AIProvider {
       const messages: any[] = [
         {
           role: 'system',
-          content: `You are a helpful assistant for technical note-taking. Your job is to minimally structure the user's notes for clarity, but NEVER change, remove, or summarize the original commands or content. For each command or code block, add a concise, one-line description above it. Do not add extra explanation, do not rewrite commands, and do not summarize. Only add minimal structure for clarity.\n\nExample:\n# Before:\ndocker-compose ps\n\n# After:\ndocker-compose command to list all docker services:\ndocker-compose ps\n\nRepeat this pattern for all commands or code blocks in the note.`
+          content: `You are a helpful assistant for technical note-taking. For each command, add a concise, one-line description above it and ALWAYS put the command itself in a Markdown code block (triple backticks). Do not change, remove, or summarize the commands.\n\nFor any non-command notes, 
+          group them at the end under a heading like 'Notes' or 'To-Do', and present them as a bulleted list or paragraph for clarity.\n\nExample:\n# Before:\ndocker-compose up\npip3 install\nI want to make 
+          the backend first, then I will add the authentication, and then the frontend, and then fix the UI.\n\n# After:\ndocker-compose command to start up services defined in a docker-compose file:\n\n\`\`\`\ndocker-compose up\n\`\`\`\n\nCommand to install a 
+          package using pip for Python 3:\n\n\`\`\`\npip3 install\n\`\`\`\n\n## Notes\n- I want to make the backend first, then I will add the authentication, and then the frontend, and then fix the UI.\n\nRepeat this pattern for all commands and notes.`
         },
         {
           role: 'user',
-          content: `Please minimally structure the following note for clarity. For each command or code block, add a concise, one-line description above it. Do not change, remove, or summarize the commands.\n\n${text}`
+          content: `Please minimally structure the following note for clarity. For each command, add a concise, one-line description above it and ALWAYS put the command itself in a Markdown code block (triple backticks). For any non-command notes, group them at the end under a heading like 'Notes' or 'To-Do', and present them as a bulleted list or paragraph for clarity. Do not change, remove, or summarize the commands.\n\n${text}`
         }
       ];
       const payload = {
