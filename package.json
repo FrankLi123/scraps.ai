@@ -81,6 +81,11 @@
           "command": "scraps.addItem",
           "when": "view == scraps.list",
           "group": "navigation"
+        },
+        {
+          "command": "scraps.syncNow",
+          "when": "view == scraps.list",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
