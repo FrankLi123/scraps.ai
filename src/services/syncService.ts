@@ -103,9 +103,9 @@ export class SyncService {
         // Defensive: only update local note after successful Notion sync
         try {
           let notionSuccess = false;
-          if (note.id && isNotionUUID(note.id) && remoteIds.has(note.id)) {
+          if (note.notionId) {
             const updated = await this.notionService.updatePage(
-              note.id,
+              note.notionId,
               safeLabel,
               aiOutput,
               note.lastModified
@@ -123,7 +123,7 @@ export class SyncService {
               note.lastModified
             );
             if (created && created.id) {
-              note.id = created.id;
+              note.notionId = created.id;
               note.content = aiOutput;
               this.listProvider.updateOrAddItem(note);
               notionSuccess = true;
@@ -143,15 +143,24 @@ export class SyncService {
         const label = (note && 'title' in note && note.title)
           ? String(note.title)
           : ((note && 'label' in note && note.label !== undefined) ? String(note.label) : 'Untitled');
-        this.listProvider.updateOrAddItem(
-          new ScrapItem(
-            label,
-            note.content,
-            vscode.TreeItemCollapsibleState.None,
-            note.id,
-            note.lastModified
-          )
-        );
+        let localItem = this.listProvider.getAllItems().find(i => i.notionId === note.id);
+        if (localItem) {
+          localItem.label = label;
+          localItem.content = note.content;
+          localItem.lastModified = note.lastModified;
+          this.listProvider.updateOrAddItem(localItem);
+        } else {
+          this.listProvider.updateOrAddItem(
+            new ScrapItem(
+              label,
+              note.content,
+              vscode.TreeItemCollapsibleState.None,
+              undefined,
+              note.id,
+              note.lastModified
+            )
+          );
+        }
       }
 
       this.setStatus(SyncStatus.Success);

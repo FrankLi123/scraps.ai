@@ -5,6 +5,7 @@ import { OldEditorProvider } from "./oldEditorProvider";
 import { ConfigService } from "./configService";
 import { SettingsProvider } from "./settingsProvider";
 import { SyncService } from "./services/syncService";
+import { NotionService } from "./services/notionService";
 
 export function activate(context: vscode.ExtensionContext) {
   // Initialize configuration service with context
@@ -40,7 +41,10 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }
   );
-  vscode.commands.registerCommand("scraps.deleteItem", (item: ScrapItem) => {
+  vscode.commands.registerCommand("scraps.deleteItem", async (item: ScrapItem) => {
+    if (item.notionId) {
+      await NotionService.getInstance().deletePage(item.notionId);
+    }
     listProvider.deleteItem(item);
   });
   vscode.commands.registerCommand("scraps.editItem", (item: ScrapItem) => {

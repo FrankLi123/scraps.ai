@@ -63,6 +63,7 @@ export class ListProvider implements vscode.TreeDataProvider<ScrapItem> {
   private saveItems() {
     const data = this.items.map((item) => ({
       id: item.id,
+      notionId: item.notionId,
       label: item.label,
       content: item.content,
       lastModified: item.lastModified,
@@ -72,13 +73,14 @@ export class ListProvider implements vscode.TreeDataProvider<ScrapItem> {
 
   private loadItems() {
     const items =
-      this.globalState.get<{ label: string; content: string; id: string; lastModified: number }[]>("items") || [];
-    this.items = Array.from(items, ({ id, label, content, lastModified }) => {
+      this.globalState.get<{ label: string; content: string; id: string; notionId?: string; lastModified: number }[]>("items") || [];
+    this.items = Array.from(items, ({ id, notionId, label, content, lastModified }) => {
       return new ScrapItem(
         label,
         content,
         vscode.TreeItemCollapsibleState.None,
         id,
+        notionId,
         lastModified
       );
     });
@@ -93,6 +95,7 @@ export class ListProvider implements vscode.TreeDataProvider<ScrapItem> {
     if (existing) {
       existing.label = item.label;
       existing.content = item.content;
+      existing.notionId = item.notionId;
     } else {
       this.items.push(item);
     }
@@ -103,6 +106,7 @@ export class ListProvider implements vscode.TreeDataProvider<ScrapItem> {
 
 export class ScrapItem extends vscode.TreeItem {
   public id: string;
+  public notionId?: string;
   public content: string = "";
   public lastModified: number;
 
@@ -111,10 +115,12 @@ export class ScrapItem extends vscode.TreeItem {
     content: string,
     collapsibleState: vscode.TreeItemCollapsibleState,
     id?: string,
+    notionId?: string,
     lastModified?: number
   ) {
     super(label || "Untitled", collapsibleState);
     this.id = id || this.generateId();
+    this.notionId = notionId;
     this.content = content;
     this.lastModified = lastModified || Date.now();
     this.iconPath = new vscode.ThemeIcon("note");
