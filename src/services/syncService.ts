@@ -54,8 +54,8 @@ export class SyncService {
       // Remove local notes whose Notion page was deleted/archived
       const remoteIds = new Set(notionPages.map((n: any) => n.id));
       for (const localNote of localNotes) {
-        if (isNotionUUID(localNote.id) && !remoteIds.has(localNote.id)) {
-          this.tombstones.add(localNote.id);
+        if (localNote.notionId && !remoteIds.has(localNote.notionId)) {
+          this.tombstones.add(localNote.notionId);
           this.listProvider.deleteItem(localNote);
         }
       }
