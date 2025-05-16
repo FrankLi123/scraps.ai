@@ -62,18 +62,19 @@ export class NotionService {
       if (!this.client || !this.databaseId) {
         throw new Error('Notion client not initialized');
       }
+      const properties: any = {
+        Name: {
+          title: [{ text: { content: title } }]
+        }
+      };
       const response = await this.client.pages.create({
         parent: { database_id: this.databaseId },
-        properties: {
-          Name: {
-            title: [{ text: { content: title } }]
-          }
-        },
+        properties,
         children: plainTextToNotionBlocks(content)
       });
-      return { id: response.id, title, content };
+      return { id: response.id, title, content, lastModified: lastModified || Date.now() };
     } catch (error) {
-      vscode.window.showErrorMessage('Failed to create note in Notion' + (error as Error).message);
+      vscode.window.showErrorMessage('Failed to create note in Notion: ' + (error as Error).message);
       return null;
     }
   }
@@ -83,21 +84,20 @@ export class NotionService {
       if (!this.client) {
         throw new Error('Notion client not initialized');
       }
-
-      // Update page properties (title)
+      const properties: any = {
+        Name: {
+          title: [
+            {
+              text: {
+                content: title
+              }
+            }
+          ]
+        }
+      };
       await this.client.pages.update({
         page_id: pageId,
-        properties: {
-          Name: {
-            title: [
-              {
-                text: {
-                  content: title
-                }
-              }
-            ]
-          }
-        }
+        properties
       });
 
       // Get existing blocks
@@ -123,7 +123,8 @@ export class NotionService {
       return {
         id: pageId,
         title,
-        content: notionBlocksToPlainText(existingBlocks.results)
+        content: notionBlocksToPlainText(existingBlocks.results),
+        lastModified: lastModified || Date.now()
       };
     } catch (error) {
       vscode.window.showErrorMessage('Failed to update note in Notion' + (error as Error).message);
@@ -190,8 +191,13 @@ export class NotionService {
           title = titleArr.map((t: { plain_text: string }) => t.plain_text).join('') || 'Untitled';
         }
 
-        // Only use last_edited_time if it exists (i.e., page is PageObjectResponse)
-        const lastModified = 'last_edited_time' in page ? new Date((page as any).last_edited_time).getTime() : undefined;
+        let lastModified = undefined;
+        if (page.properties && page.properties['lastModified'] && page.properties['lastModified'].type === 'number') {
+          const lm = page.properties['lastModified'].number;
+          lastModified = typeof lm === 'number' ? lm : undefined;
+        } else if ('last_edited_time' in page) {
+          lastModified = new Date((page as any).last_edited_time).getTime();
+        }
 
         pages.push({
           id: page.id,
