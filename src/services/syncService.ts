@@ -188,24 +188,24 @@ export class SyncService {
     const remoteMap = new Map(remote.map((n: any) => [n.id, n]));
 
     for (const l of local) {
-      if (tombstones && tombstones.has(l.id)) {
-        vscode.window.showInformationMessage(`[Scraps] Note '${l.label}' (id: ${l.id}) is in tombstones. Will not push to Notion.`);
+      if (tombstones && l.notionId && tombstones.has(l.notionId)) {
+        vscode.window.showInformationMessage(`[Scraps] Note '${l.label}' (notionId: ${l.notionId}) is in tombstones. Will not push to Notion.`);
         continue;
       }
-      const r = remoteMap.get(l.id);
+      const r = l.notionId ? remoteMap.get(l.notionId) : undefined;
       if (!r) {
-        vscode.window.showInformationMessage(`[Scraps] Note '${l.label}' (id: ${l.id}) not found in remote. Will push.`);
+        vscode.window.showInformationMessage(`[Scraps] Note '${l.label}' (notionId: ${l.notionId}) not found in remote. Will push.`);
         toPush.push(l);
       } else if (l.lastModified > r.lastModified) {
-        vscode.window.showInformationMessage(`[Scraps] Note '${l.label}' (id: ${l.id}) local lastModified (${l.lastModified}) > remote (${r.lastModified}). Will push.`);
+        vscode.window.showInformationMessage(`[Scraps] Note '${l.label}' (notionId: ${l.notionId}) local lastModified (${l.lastModified}) > remote (${r.lastModified}). Will push.`);
         toPush.push(l);
       } else if (l.lastModified < r.lastModified) {
-        vscode.window.showInformationMessage(`[Scraps] Note '${l.label}' (id: ${l.id}) local lastModified (${l.lastModified}) < remote (${r.lastModified}). Will pull.`);
+        vscode.window.showInformationMessage(`[Scraps] Note '${l.label}' (notionId: ${l.notionId}) local lastModified (${l.lastModified}) < remote (${r.lastModified}). Will pull.`);
         toPull.push(r);
       } else {
-        vscode.window.showInformationMessage(`[Scraps] Note '${l.label}' (id: ${l.id}) local lastModified (${l.lastModified}) == remote (${r.lastModified}). No sync needed.`);
+        vscode.window.showInformationMessage(`[Scraps] Note '${l.label}' (notionId: ${l.notionId}) local lastModified (${l.lastModified}) == remote (${r.lastModified}). No sync needed.`);
       }
-      remoteMap.delete(l.id);
+      if (l.notionId) remoteMap.delete(l.notionId);
     }
     // Any remaining remote notes are new
     for (const r of remoteMap.values()) {
