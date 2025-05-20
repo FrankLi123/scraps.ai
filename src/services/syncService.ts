@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { NotionService } from './notionService';
 import { ListProvider, ScrapItem } from '../listProvider';
 import { AIService } from './aiService';
+import DiffMatchPatch from 'diff-match-patch';
 
 export enum SyncStatus {
   Idle = 'Idle',
@@ -70,7 +71,19 @@ export class SyncService {
         const safeContent = (note.content !== undefined && note.content !== null) ? extractPlainText(note.content) : '';
         let aiOutput = '';
         try {
-          aiOutput = await this.aiService.summarizeText(safeContent) || '';
+          // Fetch previous content from Notion (if available)
+          let previousContent = '';
+          if (note.notionId) {
+            const remoteNote = notionPages.find((n) => n.id === note.notionId);
+            previousContent = remoteNote ? remoteNote.content : '';
+          }
+          // If no previous content, treat as new note
+          if (!previousContent) previousContent = '';
+          // Mark edited lines
+          const markedContent = previousContent
+            ? markEditedLines(previousContent, safeContent)
+            : `[EDITED]\n${safeContent}\n[/EDITED]`;
+          aiOutput = await this.aiService.summarizeText(markedContent) || '';
           vscode.window.showInformationMessage('[Scraps] AI summary:', aiOutput);
         } catch (e) {
           const errMsg = (e instanceof Error) ? e.message : String(e);
@@ -243,4 +256,32 @@ function extractPlainText(content: string): string {
   } catch {
     return content;
   }
+}
+
+// Helper to mark edited sections using diff-match-patch
+function markEditedLines(original: string, edited: string): string {
+  const dmp = new DiffMatchPatch();
+  const diffs = dmp.diff_main(original, edited);
+  dmp.diff_cleanupSemantic(diffs);
+
+  let result: string[] = [];
+  let inEditBlock = false;
+
+  for (const [op, data] of diffs) {
+    if (op === DiffMatchPatch.DIFF_EQUAL) {
+      if (inEditBlock) {
+        result.push('[/EDITED]');
+        inEditBlock = false;
+      }
+      result.push(data);
+    } else if (op === DiffMatchPatch.DIFF_INSERT || op === DiffMatchPatch.DIFF_DELETE) {
+      if (!inEditBlock) {
+        result.push('[EDITED]');
+        inEditBlock = true;
+      }
+      result.push(data);
+    }
+  }
+  if (inEditBlock) result.push('[/EDITED]');
+  return result.join('');
 }
