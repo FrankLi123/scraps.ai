@@ -13,7 +13,7 @@ export function activate(context: vscode.ExtensionContext) {
   
   // Only validate if we have some configuration set
   const config = configService.getConfig();
-  if (config.notion.syncEnabled || config.ai.provider || config.ai.model || config.ai.customEndpoint) {
+  if (config.ai.provider || config.ai.model || config.ai.customEndpoint) {
     configService.validateConfig().then(({ valid, message }) => {
       if (!valid) {
         vscode.window.showWarningMessage(`Scraps configuration issue: ${message}`);
