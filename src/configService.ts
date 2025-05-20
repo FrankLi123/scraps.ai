@@ -21,8 +21,7 @@ export class ConfigService {
     this.config = {
       notion: {
         apiKey: notionApiKey,
-        databaseId: config.get('notion.databaseId') || DEFAULT_CONFIG.notion.databaseId,
-        syncEnabled: config.get('notion.syncEnabled') || DEFAULT_CONFIG.notion.syncEnabled
+        databaseId: config.get('notion.databaseId') || DEFAULT_CONFIG.notion.databaseId
       },
       ai: {
         provider: config.get('ai.provider') || DEFAULT_CONFIG.ai.provider,
@@ -62,7 +61,6 @@ export class ConfigService {
       
       // Store other settings in regular configuration
       await config.update('notion.databaseId', newConfig.notion.databaseId, true);
-      await config.update('notion.syncEnabled', newConfig.notion.syncEnabled, true);
     }
     
     if (newConfig.ai) {
@@ -90,15 +88,6 @@ export class ConfigService {
   }
 
   public async validateConfig(): Promise<{ valid: boolean; message?: string }> {
-    // Only validate Notion settings if sync is enabled
-    if (this.config.notion.syncEnabled) {
-      if (!this.config.notion.apiKey) {
-        return { valid: false, message: 'Notion API key is required when sync is enabled' };
-      }
-      if (!this.config.notion.databaseId) {
-        return { valid: false, message: 'Notion database ID is required when sync is enabled' };
-      }
-    }
     
     // Only validate AI settings if we have partial configuration
     if (this.config.ai.provider || this.config.ai.model || this.config.ai.customEndpoint) {

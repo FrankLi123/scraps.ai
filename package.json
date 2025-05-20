@@ -114,11 +114,6 @@
           "default": "",
           "description": "Notion database ID for syncing notes"
         },
-        "scraps.notion.syncEnabled": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable automatic syncing with Notion"
-        },
         "scraps.ai.model": {
           "type": "string",
           "enum": [
