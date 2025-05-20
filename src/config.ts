@@ -1,7 +1,6 @@
 export interface NotionConfig {
   apiKey: string;
   databaseId: string;
-  syncEnabled: boolean;
 }
 
 export interface AIConfig {
@@ -19,8 +18,7 @@ export interface ExtensionConfig {
 export const DEFAULT_CONFIG: ExtensionConfig = {
   notion: {
     apiKey: '',
-    databaseId: '',
-    syncEnabled: false
+    databaseId: ''
   },
   ai: {
     provider: 'openai',

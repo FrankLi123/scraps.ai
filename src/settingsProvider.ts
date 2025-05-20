@@ -155,11 +155,6 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
             <div class="api-key-input">
               <input type="text" id="notionDatabaseId" value="${config.notion.databaseId}" placeholder="Enter Notion Database ID">
             </div>
-            
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-              <input type="checkbox" id="notionSyncEnabled" ${config.notion.syncEnabled ? 'checked' : ''} style="width: 18px; height: 18px;" />
-              <label for="notionSyncEnabled" style="margin: 0;">Enable Sync</label>
-            </div>
           </div>
 
           <div class="form-group">
@@ -202,7 +197,6 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
               notion: {
                 apiKey: document.getElementById('notionApiKey').value,
                 databaseId: document.getElementById('notionDatabaseId').value,
-                syncEnabled: document.getElementById('notionSyncEnabled').checked
               },
               ai: {
                 apiKey: document.getElementById('aiApiKey').value,
