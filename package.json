@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/FrankLi123/scraps.ai"
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engines": {
     "vscode": "^1.89.0"
   },
@@ -43,34 +43,34 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "scraps",
-          "title": "scraps",
+          "id": "scraps-ai",
+          "title": "Scraps.ai",
           "icon": "resources/icon.svg"
         }
       ]
     },
     "views": {
-      "scraps": [
+      "scraps-ai": [
         {
           "type": "tree",
-          "id": "scraps.list",
+          "id": "scraps-ai.list",
           "name": "List",
           "initialSize": 0.1
         },
         {
           "type": "webview",
-          "id": "scraps.editor",
+          "id": "scraps-ai.editor",
           "name": "Editor"
         },
         {
           "type": "webview",
-          "id": "scraps.oldEditor",
+          "id": "scraps-ai.oldEditor",
           "name": "Old Editor",
           "visibility": "collapsed"
         },
         {
           "type": "webview",
-          "id": "scraps.settings",
+          "id": "scraps-ai.settings",
           "name": "Settings"
         }
       ]
@@ -79,24 +79,24 @@
       "view/title": [
         {
           "command": "scraps.addItem",
-          "when": "view == scraps.list",
+          "when": "view == scraps-ai.list",
           "group": "navigation"
         },
         {
           "command": "scraps.syncNow",
-          "when": "view == scraps.list",
+          "when": "view == scraps-ai.list",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
           "command": "scraps.renameItem",
-          "when": "view == scraps.list",
+          "when": "view == scraps-ai.list",
           "group": "1_modification"
         },
         {
           "command": "scraps.deleteItem",
-          "when": "view == scraps.list",
+          "when": "view == scraps-ai.list",
           "group": "1_modification"
         }
       ]
