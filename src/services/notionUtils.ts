@@ -80,12 +80,21 @@ export function notionBlocksToPlainText(blocks: any[]): string {
       if (block[block.type] && block[block.type].rich_text) {
         result += '#'.repeat(Number(level)) + ' ' + block[block.type].rich_text.map((t: any) => t.text.content).join('') + '\n';
       }
-    } else if (block.type === 'bulleted_list' && block.bulleted_list && block.bulleted_list.children) {
-      for (const item of block.bulleted_list.children) {
-        if (item.bulleted_list_item && item.bulleted_list_item.rich_text) {
-          result += '- ' + item.bulleted_list_item.rich_text.map((t: any) => t.text.content).join('') + '\n';
-        }
-      }
+    } else if (block.type === 'bulleted_list_item' && block.bulleted_list_item.rich_text) {
+      result += '- ' + block.bulleted_list_item.rich_text.map((t: any) => t.text.content).join('') + '\n';
+    } else if (block.type === 'numbered_list_item' && block.numbered_list_item.rich_text) {
+      result += '1. ' + block.numbered_list_item.rich_text.map((t: any) => t.text.content).join('') + '\n';
+    } else if (block.type === 'to_do' && block.to_do.rich_text) {
+      const checked = block.to_do.checked ? '[x]' : '[ ]';
+      result += `- ${checked} ` + block.to_do.rich_text.map((t: any) => t.text.content).join('') + '\n';
+    } else if (block.type === 'quote' && block.quote.rich_text) {
+      result += '> ' + block.quote.rich_text.map((t: any) => t.text.content).join('') + '\n';
+    } else if (block.type === 'divider') {
+      result += '---\n';
+    } else if (block.type === 'toggle' && block.toggle.rich_text) {
+      result += '▸ ' + block.toggle.rich_text.map((t: any) => t.text.content).join('') + '\n';
+    } else if (block.type === 'code' && block.code.rich_text.length) {
+      result += '```\n' + block.code.rich_text.map((t: any) => t.text.content).join('') + '\n```\n';
     }
   }
   return result.trim();

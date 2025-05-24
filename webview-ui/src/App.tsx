@@ -31,6 +31,10 @@ const TiptapEditor = () => {
     };
   }
 
+ 
+  console.log("InitialData.content:", initialData.content);
+
+  
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
