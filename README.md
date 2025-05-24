@@ -117,7 +117,9 @@ Or you can contact Frank (see contact information at the end)
 ## Contributing
 
 Scraps.ai is open-source and welcomes contributions!
+
 If you have ideas, suggestions, or want to help improve the extension, feel free to open issues or submit pull requests.
+https://github.com/FrankLi123/scraps.ai
 
 ## License
 
@@ -125,7 +127,7 @@ If you have ideas, suggestions, or want to help improve the extension, feel free
 
 ## Acknowledgments
 
-This project is a fork of [scraps](https://github.com/original-scraps-repo).
+This project is a fork of [scraps](https://github.com/corrupt952/scraps), created by K@zuki.
 Special thanks to:
 - K@zuki
 - corrupt952 (GitHub)
