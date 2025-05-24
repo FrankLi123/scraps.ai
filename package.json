@@ -1,14 +1,14 @@
 {
-  "name": "scraps",
-  "displayName": "scraps",
-  "description": "This extension allows you to make notes in the sidebar.",
+  "name": "scraps-ai",
+  "displayName": "Scraps.ai",
+  "description": "AI-powered note-taking extension for VSCode with Notion sync and smart AI summarization.",
   "icon": "icon.png",
-  "publisher": "corrupt952",
+  "publisher": "Franky123",
   "repository": {
     "type": "git",
-    "url": "https://github.com/corrupt952/scraps"
+    "url": "https://github.com/FrankLi123/scraps.ai"
   },
-  "version": "0.0.7",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.89.0"
   },
