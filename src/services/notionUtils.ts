@@ -11,7 +11,8 @@ export function plainTextToNotionBlocks(text: string): any[] {
   const tokens = marked.lexer(text);
   const blocks: any[] = [];
 
-  for (const token of tokens) {
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
     if (token.type === 'heading') {
       blocks.push({
         object: 'block',
@@ -52,6 +53,14 @@ export function plainTextToNotionBlocks(text: string): any[] {
           language: lang
         }
       });
+      // Add an empty paragraph after code blocks for spacing
+      blocks.push({
+        object: 'block',
+        type: 'paragraph',
+        paragraph: {
+          rich_text: []
+        }
+      });
     } else if (token.type === 'hr') {
       blocks.push({
         object: 'block',
@@ -59,7 +68,6 @@ export function plainTextToNotionBlocks(text: string): any[] {
         divider: {}
       });
     }
-    // Add more token types as needed
   }
   // Filter out any falsy/undefined blocks
   const filteredBlocks = blocks.filter(Boolean);
@@ -94,7 +102,7 @@ export function notionBlocksToPlainText(blocks: any[]): string {
     } else if (block.type === 'toggle' && block.toggle.rich_text) {
       result += '▸ ' + block.toggle.rich_text.map((t: any) => t.text.content).join('') + '\n';
     } else if (block.type === 'code' && block.code.rich_text.length) {
-      result += '```\n' + block.code.rich_text.map((t: any) => t.text.content).join('') + '\n```\n';
+      result += '```\n' + block.code.rich_text.map((t: any) => t.text.content).join('') + '\n```\n\n';
     }
   }
   return result.trim();
