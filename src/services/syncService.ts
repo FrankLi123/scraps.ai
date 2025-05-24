@@ -20,6 +20,7 @@ export class SyncService {
   private syncStatus: SyncStatus = SyncStatus.Idle;
   private syncInterval: NodeJS.Timeout | null = null;
   private tombstones: Set<string>;
+  private debugMode: number = 1;
 
   constructor(listProvider: ListProvider) {
     this.notionService = NotionService.getInstance();
@@ -29,6 +30,22 @@ export class SyncService {
     this.statusBar.text = 'Scraps: Idle';
     this.statusBar.show();
     this.tombstones = new Set<string>(listProvider['globalState'].get('notionDeletedTombstones', []));
+  }
+
+  private showNotification(type: 'info' | 'error' | 'warning', message: string, ...args: any[]) {
+    if (this.debugMode === 0) {
+      switch (type) {
+        case 'info':
+          vscode.window.showInformationMessage(message, ...args);
+          break;
+        case 'error':
+          vscode.window.showErrorMessage(message, ...args);
+          break;
+        case 'warning':
+          vscode.window.showWarningMessage(message, ...args);
+          break;
+      }
+    }
   }
 
   public startAutoSync(intervalMs: number = 60000) {
@@ -45,7 +62,7 @@ export class SyncService {
 
   public async sync() {
     this.setStatus(SyncStatus.Syncing);
-    vscode.window.showInformationMessage('[Scraps] Sync started.');
+    this.showNotification('info', '[Scraps] Sync started.');
     try {
       // 1. Pull from Notion
       const notionPages = await this.notionService.getAllPages();
@@ -84,23 +101,23 @@ export class SyncService {
             ? markEditedLines(previousContent, safeContent)
             : `[EDITED]\n${safeContent}\n[/EDITED]`;
           aiOutput = await this.aiService.summarizeText(markedContent) || '';
-          vscode.window.showInformationMessage('[Scraps] AI summary:', aiOutput);
+          this.showNotification('info', '[Scraps] AI summary:', aiOutput);
         } catch (e) {
           const errMsg = (e instanceof Error) ? e.message : String(e);
-          vscode.window.showErrorMessage('[Scraps] AI summarization failed: ' + errMsg);
+          this.showNotification('error', '[Scraps] AI summarization failed: ' + errMsg);
         }
         // Validate AI output
         if (!aiOutput || aiOutput.trim().length === 0) {
-          vscode.window.showErrorMessage('[Scraps] AI output is empty. Skipping sync for this note.');
+          this.showNotification('error', '[Scraps] AI output is empty. Skipping sync for this note.');
           continue;
         }
         // Convert to Notion blocks
         let blocks;
         try {
           blocks = require('./notionUtils').plainTextToNotionBlocks(aiOutput);
-          vscode.window.showInformationMessage('[Scraps] Notion blocks:', JSON.stringify(blocks));
+          this.showNotification('info', '[Scraps] Notion blocks:', JSON.stringify(blocks));
         } catch (e) {
-          vscode.window.showErrorMessage('[Scraps] Failed to generate Notion blocks for logging. Skipping sync for this note.' + (e as Error).message);
+          this.showNotification('error', '[Scraps] Failed to generate Notion blocks for logging. Skipping sync for this note.' + (e as Error).message);
           continue;
         }
         if (!blocks || blocks.length === 0) {
@@ -143,11 +160,11 @@ export class SyncService {
             }
           }
           if (!notionSuccess) {
-            vscode.window.showErrorMessage('[Scraps] Notion sync failed, local note not updated.');
+            this.showNotification('error', '[Scraps] Notion sync failed, local note not updated.');
           }
         } catch (err) {
           const errMsg = (err instanceof Error) ? err.message : String(err);
-          vscode.window.showErrorMessage('[Scraps] Failed to sync note to Notion: ' + errMsg);
+          this.showNotification('error', '[Scraps] Failed to sync note to Notion: ' + errMsg);
         }
       }
 
@@ -177,10 +194,10 @@ export class SyncService {
       }
 
       this.setStatus(SyncStatus.Success);
-      vscode.window.showInformationMessage('[Scraps] Sync completed.');
+      this.showNotification('info', '[Scraps] Sync completed.');
     } catch (err) {
       this.setStatus(SyncStatus.Error);
-      vscode.window.showErrorMessage('Scraps sync failed: ' + (err as Error).message);
+      this.showNotification('error', 'Scraps sync failed: ' + (err as Error).message);
     }
   }
 
@@ -202,27 +219,27 @@ export class SyncService {
 
     for (const l of local) {
       if (tombstones && l.notionId && tombstones.has(l.notionId)) {
-        vscode.window.showInformationMessage(`[Scraps] Note '${l.label}' (notionId: ${l.notionId}) is in tombstones. Will not push to Notion.`);
+        this.showNotification('info', `[Scraps] Note '${l.label}' (notionId: ${l.notionId}) is in tombstones. Will not push to Notion.`);
         continue;
       }
       const r = l.notionId ? remoteMap.get(l.notionId) : undefined;
       if (!r) {
-        vscode.window.showInformationMessage(`[Scraps] Note '${l.label}' (notionId: ${l.notionId}) not found in remote. Will push.`);
+        this.showNotification('info', `[Scraps] Note '${l.label}' (notionId: ${l.notionId}) not found in remote. Will push.`);
         toPush.push(l);
       } else if (l.lastModified > r.lastModified) {
-        vscode.window.showInformationMessage(`[Scraps] Note '${l.label}' (notionId: ${l.notionId}) local lastModified (${l.lastModified}) > remote (${r.lastModified}). Will push.`);
+        this.showNotification('info', `[Scraps] Note '${l.label}' (notionId: ${l.notionId}) local lastModified (${l.lastModified}) > remote (${r.lastModified}). Will push.`);
         toPush.push(l);
       } else if (l.lastModified < r.lastModified) {
-        vscode.window.showInformationMessage(`[Scraps] Note '${l.label}' (notionId: ${l.notionId}) local lastModified (${l.lastModified}) < remote (${r.lastModified}). Will pull.`);
+        this.showNotification('info', `[Scraps] Note '${l.label}' (notionId: ${l.notionId}) local lastModified (${l.lastModified}) < remote (${r.lastModified}). Will pull.`);
         toPull.push(r);
       } else {
-        vscode.window.showInformationMessage(`[Scraps] Note '${l.label}' (notionId: ${l.notionId}) local lastModified (${l.lastModified}) == remote (${r.lastModified}). No sync needed.`);
+        this.showNotification('info', `[Scraps] Note '${l.label}' (notionId: ${l.notionId}) local lastModified (${l.lastModified}) == remote (${r.lastModified}). No sync needed.`);
       }
       if (l.notionId) remoteMap.delete(l.notionId);
     }
     // Any remaining remote notes are new
     for (const r of remoteMap.values()) {
-      vscode.window.showInformationMessage(`[Scraps] Remote note '${r.title || r.label}' (id: ${r.id}) is new. Will pull.`);
+      this.showNotification('info', `[Scraps] Remote note '${r.title || r.label}' (id: ${r.id}) is new. Will pull.`);
       toPull.push(r);
     }
     return { toPush, toPull };
