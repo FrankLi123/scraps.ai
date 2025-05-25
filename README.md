@@ -1,6 +1,9 @@
 <div align="center">
   <img src="logo-cover.png" alt="Scraps.ai Logo" width="200"/><br>
-  <span style="font-size:2em; font-weight:bold;">Scraps.ai</span>
+</div>
+
+<div align="center">
+  <span style="font-size:2.5em; font-weight:bold;">Scraps.ai</span>
 </div>
 
 ## Table of Contents
