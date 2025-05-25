@@ -26,11 +26,11 @@ export function activate(context: vscode.ExtensionContext) {
   const oldEditorProvider = new OldEditorProvider(context.extensionUri);
 
   // Commands
-  vscode.commands.registerCommand("scraps.addItem", (item: ScrapItem) => {
+  vscode.commands.registerCommand("scraps-ai.addItem", (item: ScrapItem) => {
     listProvider.addItem("Untitled");
   });
   vscode.commands.registerCommand(
-    "scraps.renameItem",
+    "scraps-ai.renameItem",
     async (item: ScrapItem) => {
       const newName = await vscode.window.showInputBox({
         prompt: "Enter new name",
@@ -41,38 +41,38 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }
   );
-  vscode.commands.registerCommand("scraps.deleteItem", async (item: ScrapItem) => {
+  vscode.commands.registerCommand("scraps-ai.deleteItem", async (item: ScrapItem) => {
     if (item.notionId) {
       await NotionService.getInstance().deletePage(item.notionId);
     }
     listProvider.deleteItem(item);
   });
-  vscode.commands.registerCommand("scraps.editItem", (item: ScrapItem) => {
+  vscode.commands.registerCommand("scraps-ai.editItem", (item: ScrapItem) => {
     editorProvider.edit(item);
     editorProvider.refresh();
   });
 
   // Views
-  const listView = vscode.window.createTreeView("scraps.list", {
+  const listView = vscode.window.createTreeView("scraps-ai.list", {
     treeDataProvider: listProvider,
   });
   context.subscriptions.push(listView);
   context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider("scraps.editor", editorProvider)
+    vscode.window.registerWebviewViewProvider("scraps-ai.editor", editorProvider)
   );
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
-      "scraps.oldEditor",
+      "scraps-ai.oldEditor",
       oldEditorProvider
     )
   );
   context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider("scraps.settings", new SettingsProvider())
+    vscode.window.registerWebviewViewProvider("scraps-ai.settings", new SettingsProvider())
   );
   
   const syncService = new SyncService(listProvider);
   context.subscriptions.push(
-    vscode.commands.registerCommand('scraps.syncNow', () => syncService.sync())
+    vscode.commands.registerCommand('scraps-ai.syncNow', () => syncService.sync())
   );
 }
 

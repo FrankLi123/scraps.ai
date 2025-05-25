@@ -12,11 +12,11 @@ export class ConfigService {
   }
 
   public async initializeConfig(): Promise<void> {
-    const config = vscode.workspace.getConfiguration('scraps');
+    const config = vscode.workspace.getConfiguration('scraps-ai');
     
     // Load API keys from SecretStorage
-    const notionApiKey = await this.secrets.get('notion.apiKey') || '';
-    const aiApiKey = await this.secrets.get('ai.apiKey') || '';
+    const notionApiKey = await this.secrets.get('scraps-ai.notion.apiKey') || '';
+    const aiApiKey = await this.secrets.get('scraps-ai.ai.apiKey') || '';
     
     this.config = {
       notion: {
@@ -51,12 +51,12 @@ export class ConfigService {
   }
 
   public async updateConfig(newConfig: Partial<ExtensionConfig>): Promise<void> {
-    const config = vscode.workspace.getConfiguration('scraps');
+    const config = vscode.workspace.getConfiguration('scraps-ai');
     
     if (newConfig.notion) {
       // Store API key in SecretStorage
       if (newConfig.notion.apiKey !== undefined) {
-        await this.secrets.store('notion.apiKey', newConfig.notion.apiKey);
+        await this.secrets.store('scraps-ai.notion.apiKey', newConfig.notion.apiKey);
       }
       
       // Store other settings in regular configuration
@@ -66,7 +66,7 @@ export class ConfigService {
     if (newConfig.ai) {
       // Store API key in SecretStorage
       if (newConfig.ai.apiKey !== undefined) {
-        await this.secrets.store('ai.apiKey', newConfig.ai.apiKey);
+        await this.secrets.store('scraps-ai.ai.apiKey', newConfig.ai.apiKey);
       }
       
       // Store other settings in regular configuration

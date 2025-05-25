@@ -68,12 +68,12 @@ export class ListProvider implements vscode.TreeDataProvider<ScrapItem> {
       content: item.content,
       lastModified: item.lastModified,
     }));
-    this.globalState.update("items", data);
+    this.globalState.update("scraps-ai.items", data);
   }
 
   private loadItems() {
     const items =
-      this.globalState.get<{ label: string; content: string; id: string; notionId?: string; lastModified: number }[]>("items") || [];
+      this.globalState.get<{ label: string; content: string; id: string; notionId?: string; lastModified: number }[]>("scraps-ai.items") || [];
     this.items = Array.from(items, ({ id, notionId, label, content, lastModified }) => {
       return new ScrapItem(
         label,
@@ -125,7 +125,7 @@ export class ScrapItem extends vscode.TreeItem {
     this.lastModified = lastModified || Date.now();
     this.iconPath = new vscode.ThemeIcon("note");
     this.command = {
-      command: "scraps.editItem",
+      command: "scraps-ai.editItem",
       title: "Edit",
       arguments: [this],
     };

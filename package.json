@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/FrankLi123/scraps.ai"
   },
-  "version": "1.0.2",
+  "version": "1.0.3",
   "engines": {
     "vscode": "^1.89.0"
   },
@@ -20,23 +20,23 @@
   "contributes": {
     "commands": [
       {
-        "command": "scraps.addItem",
+        "command": "scraps-ai.addItem",
         "title": "Add"
       },
       {
-        "command": "scraps.renameItem",
+        "command": "scraps-ai.renameItem",
         "title": "Rename"
       },
       {
-        "command": "scraps.deleteItem",
+        "command": "scraps-ai.deleteItem",
         "title": "Delete"
       },
       {
-        "command": "scraps.editItem",
+        "command": "scraps-ai.editItem",
         "title": "Edit"
       },
       {
-        "command": "scraps.syncNow",
+        "command": "scraps-ai.syncNow",
         "title": "Sync Now"
       }
     ],
@@ -78,43 +78,43 @@
     "menus": {
       "view/title": [
         {
-          "command": "scraps.addItem",
+          "command": "scraps-ai.addItem",
           "when": "view == scraps-ai.list",
           "group": "navigation"
         },
         {
-          "command": "scraps.syncNow",
+          "command": "scraps-ai.syncNow",
           "when": "view == scraps-ai.list",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "scraps.renameItem",
+          "command": "scraps-ai.renameItem",
           "when": "view == scraps-ai.list",
           "group": "1_modification"
         },
         {
-          "command": "scraps.deleteItem",
+          "command": "scraps-ai.deleteItem",
           "when": "view == scraps-ai.list",
           "group": "1_modification"
         }
       ]
     },
     "configuration": {
-      "title": "Scraps",
+      "title": "Scraps.ai",
       "properties": {
-        "scraps.notion.apiKey": {
+        "scraps-ai.notion.apiKey": {
           "type": "string",
           "default": "",
           "description": "Notion API key for integration"
         },
-        "scraps.notion.databaseId": {
+        "scraps-ai.notion.databaseId": {
           "type": "string",
           "default": "",
           "description": "Notion database ID for syncing notes"
         },
-        "scraps.ai.model": {
+        "scraps-ai.ai.model": {
           "type": "string",
           "enum": [
             "gpt4o",
@@ -125,7 +125,7 @@
           "default": "gpt4o",
           "description": "Select the AI model for summarization. (gpt4o, gpt4o-mini, gemini-2.0-flash, fireworks-ai)"
         },
-        "scraps.ai.apiKey": {
+        "scraps-ai.ai.apiKey": {
           "type": "string",
           "default": "",
           "description": "API key for the selected AI model's provider."

@@ -19,7 +19,7 @@ export class SyncService {
   private statusBar: vscode.StatusBarItem;
   private syncStatus: SyncStatus = SyncStatus.Idle;
   private syncInterval: NodeJS.Timeout | null = null;
-  private tombstones: Set<string>;
+  private tombstones: Set<string> = new Set();
   private debugMode: number = 1;
 
   constructor(listProvider: ListProvider) {
@@ -29,7 +29,7 @@ export class SyncService {
     this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
     this.statusBar.text = 'Scraps: Idle';
     this.statusBar.show();
-    this.tombstones = new Set<string>(listProvider['globalState'].get('notionDeletedTombstones', []));
+    this.loadTombstones();
   }
 
   private showNotification(type: 'info' | 'error' | 'warning', message: string, ...args: any[]) {
@@ -77,7 +77,7 @@ export class SyncService {
           this.listProvider.deleteItem(localNote);
         }
       }
-      this.listProvider['globalState'].update('notionDeletedTombstones', Array.from(this.tombstones));
+      this.saveTombstones();
 
       // 3. Merge and resolve conflicts (last modified wins)
       const merged = this.mergeNotes(localNotes, notionPages, this.tombstones);
@@ -248,6 +248,15 @@ export class SyncService {
   public dispose() {
     this.statusBar.dispose();
     this.stopAutoSync();
+  }
+
+  private loadTombstones() {
+    const tombstones = this.listProvider['globalState'].get<string[]>('scraps-ai.notionDeletedTombstones') || [];
+    this.tombstones = new Set(tombstones);
+  }
+
+  private saveTombstones() {
+    this.listProvider['globalState'].update('scraps-ai.notionDeletedTombstones', Array.from(this.tombstones));
   }
 }
 
