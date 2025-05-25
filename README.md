@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="icon.png" alt="Scraps.ai Logo" width="200"/><br>
+  <img src="logo-cover.png" alt="Scraps.ai Logo" width="200"/><br>
   <span style="font-size:2.5em; font-weight:bold;">Scraps.ai</span>
 </div>
 
