@@ -15,8 +15,10 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
-  "main": "./out/extension.js",
+  "activationEvents": [
+    "onView:scraps-ai.list"
+  ],
+  "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
@@ -137,14 +139,17 @@
     "prewebview-ui:watch": "cd webview-ui && npm install",
     "webview-ui:watch": "cd webview-ui && npm run watch",
     "webview-ui:compile": "cd webview-ui && npm run build",
-    "vscode:prepublish": "npm run webview-ui:compile && npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run webview-ui:compile && npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "pretest": "npm run compile && npm run lint",
     "test": "vscode-test",
-    "package": "npx vsce package",
-    "publish": "npx vsce publish"
+    "vsce:package": "npx vsce package",
+    "vsce:publish": "npx vsce publish"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.18.0",
@@ -166,6 +171,9 @@
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.3.9",
     "eslint": "^8.57.0",
-    "typescript": "^5.4.5"
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.4.5",
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1"
   }
 }

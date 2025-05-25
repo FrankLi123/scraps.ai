@@ -1,6 +1,8 @@
 .vscode/**
 .vscode-test/**
-**/src/**
+src/**
+out/**
+**/node_modules/**
 .gitignore
 .yarnrc
 vsc-extension-quickstart.md
@@ -9,6 +11,7 @@ vsc-extension-quickstart.md
 **/*.map
 **/*.ts
 **/.vscode-test.*
-**/node_modules/**
+webpack.config.js
 webview-ui/**
 !webview-ui/dist/bundle.*
+!dist/extension.js

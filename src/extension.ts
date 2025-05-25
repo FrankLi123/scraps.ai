@@ -16,7 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
   if (config.ai.provider || config.ai.model || config.ai.customEndpoint) {
     configService.validateConfig().then(({ valid, message }) => {
       if (!valid) {
-        vscode.window.showWarningMessage(`Scraps configuration issue: ${message}`);
+        vscode.window.showWarningMessage(`Scraps configuration Warning: ${message}`);
       }
     });
   }
@@ -26,31 +26,39 @@ export function activate(context: vscode.ExtensionContext) {
   const oldEditorProvider = new OldEditorProvider(context.extensionUri);
 
   // Commands
-  vscode.commands.registerCommand("scraps-ai.addItem", (item: ScrapItem) => {
-    listProvider.addItem("Untitled");
-  });
-  vscode.commands.registerCommand(
-    "scraps-ai.renameItem",
-    async (item: ScrapItem) => {
-      const newName = await vscode.window.showInputBox({
-        prompt: "Enter new name",
-        value: item.label?.toString(),
-      });
-      if (newName) {
-        listProvider.renameItem(item, newName);
-      }
-    }
+  context.subscriptions.push(
+    vscode.commands.registerCommand("scraps-ai.addItem", (item: ScrapItem) => {
+      listProvider.addItem("Untitled");
+    })
   );
-  vscode.commands.registerCommand("scraps-ai.deleteItem", async (item: ScrapItem) => {
-    if (item.notionId) {
-      await NotionService.getInstance().deletePage(item.notionId);
-    }
-    listProvider.deleteItem(item);
-  });
-  vscode.commands.registerCommand("scraps-ai.editItem", (item: ScrapItem) => {
-    editorProvider.edit(item);
-    editorProvider.refresh();
-  });
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "scraps-ai.renameItem",
+      async (item: ScrapItem) => {
+        const newName = await vscode.window.showInputBox({
+          prompt: "Enter new name",
+          value: item.label?.toString(),
+        });
+        if (newName) {
+          listProvider.renameItem(item, newName);
+        }
+      }
+    )
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand("scraps-ai.deleteItem", async (item: ScrapItem) => {
+      if (item.notionId) {
+        await NotionService.getInstance().deletePage(item.notionId);
+      }
+      listProvider.deleteItem(item);
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand("scraps-ai.editItem", (item: ScrapItem) => {
+      editorProvider.edit(item);
+      editorProvider.refresh();
+    })
+  );
 
   // Views
   const listView = vscode.window.createTreeView("scraps-ai.list", {

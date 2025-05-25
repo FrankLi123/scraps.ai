@@ -209,7 +209,7 @@ export class AIService {
     const model = config.ai.model;
     const apiKey = config.ai.apiKey;
     if (!model || !apiKey) {
-      vscode.window.showErrorMessage('AI Error: Missing model or API key in settings.');
+      // vscode.window.showErrorMessage('AI Warning: Missing model or API key in settings.');
       return;
     }
     const apiModel = this.MODEL_MAP[model] || model;
