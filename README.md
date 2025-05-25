@@ -1,6 +1,28 @@
-# Scraps.ai
+<div align="center">
+  <img src="icon.png" alt="Scraps.ai Logo" width="200"/><br>
+  <span style="font-size:2.5em; font-weight:bold;">Scraps.ai</span>
+</div>
 
-Scraps.ai is an AI-powered note-taking extension for VSCode that helps you organize and structure your notes intelligently, and synchronize your notes to Notion with ease.
+## Table of Contents
+- [Features](#features)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Troubleshooting](#troubleshooting)
+- [Extension Development](#extension-development)
+  - [Directory Structure](#directory-structure)
+  - [Requirements](#requirements)
+  - [Setup](#setup)
+  - [Building the Extension](#building-the-extension)
+  - [Running the Extension](#running-the-extension)
+  - [Using the Extension](#using-the-extension)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
+- [Contact](#contact)
+
+## Introduction
+
+**Scraps.ai** is an AI-powered note-taking extension for VSCode that helps you organize and structure your notes intelligently, and synchronize your notes to Notion with ease.
 
 ## Features
 
@@ -10,7 +32,62 @@ Scraps.ai is an AI-powered note-taking extension for VSCode that helps you organ
 - 🎯 Multiple AI model support (GPT4, Gemini, Fireworks AI)
 - 📱 Cross-device sync
 
-## Directory Structure
+## Installation
+
+- **VS Code/ Cursor Marketplace:**
+  1. Open Extensions view (`Cmd+Shift+X`)
+  2. Search for `Scraps.ai`(`Franky123.scraps-ai`)
+  3. Click **Install**
+  4. (If not visible, wait a few minutes or restart the editor)
+
+- **Manual (VSIX):**
+  1. Download the latest `.vsix` from [Marketplace](https://marketplace.visualstudio.com/items?itemName=Franky123.scraps-ai)
+  2. Open Command Palette (`Cmd+Shift+P`)
+  3. Run `Extensions: Install from VSIX...`
+  4. Select the downloaded file
+
+## Configuration
+
+To access settings, click on the Scraps.ai icon in the VSCode sidebar and navigate to the Settings tab.
+
+<div align="center">
+  <img src="resources/setting.png" alt="Settings Screenshot" width="450"/>
+</div>
+
+### AI Settings
+- Choose your preferred AI model
+- Add your API key for the selected provider
+- Customize summarization behavior
+
+### Notion Integration
+- Add your Notion API key
+- Specify your target database ID
+- Enable automatic sync
+
+## How to Use
+
+1. Click **Add** to create a new note.
+
+2. Select a note to edit its content in the editor panel below.
+
+3. Use **Sync Now** to synchronize your notes with Notion.
+
+4. When the synchronization status turns to "Scraps:success" (at the bottom-left corner), you will be able to see the summarized notes as new Notion pages on Notion.
+
+Tip: Make sure your Notion and AI settings are configured before syncing.
+
+## Troubleshooting
+
+If you're unable to edit notes:
+- Ensure all dependencies are properly installed
+- Make sure both the webview UI and extension are compiled
+- Check that the editor panel is visible alongside the list panel
+
+Or you can contact Frank (see contact information at the end)
+
+## Extension Development
+
+### Directory Structure
 
 ```plaintext
 .
@@ -20,8 +97,6 @@ Scraps.ai is an AI-powered note-taking extension for VSCode that helps you organ
     ├── public ... Static resources for Webview UI
     └── src    ... Source code for Webview UI
 ```
-
-## Development
 
 ### Requirements
 
@@ -91,28 +166,6 @@ Replace `[path-to-project-directory]` with the actual path, or use `${PWD}` if r
 6. **Sync Notes**
    - Click **Sync Now** to manually synchronize your notes with Notion.
    - Notes will be formatted and summarized using your selected AI model before syncing.
-
-## Configuration
-
-### AI Settings
-- Choose your preferred AI model
-- Add your API key for the selected provider
-- Customize summarization behavior
-
-### Notion Integration
-- Add your Notion API key
-- Specify your target database ID
-- Enable automatic sync
-
-## Troubleshooting
-
-If you're unable to edit notes:
-- Ensure all dependencies are properly installed
-- Make sure both the webview UI and extension are compiled
-- Check that the editor panel is visible alongside the list panel
-
-
-Or you can contact Frank (see contact information at the end)
 
 ## Contributing
 
