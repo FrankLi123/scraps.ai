@@ -4,7 +4,21 @@ All notable changes to the "scraps" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [1.0.3] - 2024-03-19
+## [1.0.4] - 2025-05-25
+
+### 🔧 Fixed
+- **Extension Loading**: Added proper activation events to ensure extension loads when needed
+
+### ✨ Improved
+- **Custom Icon**: Replaced complex SVG with optimized Activity Bar icon that adapts to VS Code themes
+- **Build System**: Migrated from TypeScript compilation to webpack bundling for better dependency management
+- **Performance**: Reduced extension size and improved loading times with optimized bundling
+
+### 🎨 Changed
+- Updated Activity Bar icon to custom document + AI spark design
+- Improved extension reliability and stability
+
+## [1.0.3] - 2025-5-24
 
 ### Fixed
 - Fixed command not found errors by standardizing command IDs
