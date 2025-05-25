@@ -159,11 +159,6 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
 
           <div class="form-group">
             <h3>AI Settings</h3>
-            <label for="aiApiKey">API Key</label>
-            <div class="api-key-input">
-              <input type="password" id="aiApiKey" value="${config.ai.apiKey ? '••••••••' : ''}" placeholder="Enter API key for the selected model">
-              ${config.ai.apiKey ? '<button type="button" class="clear-button" data-target="aiApiKey">Clear</button>' : ''}
-            </div>
             <label for="aiModel">Model</label>
             <select id="aiModel">
               <option value="gpt4o" ${config.ai.model === 'gpt4o' ? 'selected' : ''}>gpt4o (OpenAI)</option>
@@ -171,6 +166,11 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
               <option value="gemini-2.0-flash" ${config.ai.model === 'gemini-2.0-flash' ? 'selected' : ''}>Gemini 2.0 Flash (Google)</option>
               <option value="fireworks-ai" ${config.ai.model === 'fireworks-ai' ? 'selected' : ''}>Fireworks AI</option>
             </select>
+              <label for="aiApiKey">API Key</label>
+            <div class="api-key-input">
+              <input type="password" id="aiApiKey" value="${config.ai.apiKey ? '••••••••' : ''}" placeholder="Enter API key for the selected model">
+              ${config.ai.apiKey ? '<button type="button" class="clear-button" data-target="aiApiKey">Clear</button>' : ''}
+            </div>
           </div>
 
           <button type="submit" class="settings-btn">Save Settings</button>
