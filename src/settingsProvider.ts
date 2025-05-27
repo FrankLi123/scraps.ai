@@ -145,7 +145,7 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
         <form id="settingsForm">
           <div class="form-group">
             <h3>Notion Settings</h3>
-            <label for="notionApiKey">API Key</label>
+            <label for="notionApiKey">Integration Token</label>
             <div class="api-key-input">
               <input type="password" id="notionApiKey" value="${config.notion.apiKey ? '••••••••' : ''}" placeholder="Enter Notion API key">
               ${config.notion.apiKey ? '<button type="button" class="clear-button" data-target="notionApiKey">Clear</button>' : ''}
